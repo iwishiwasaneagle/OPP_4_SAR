@@ -1,0 +1,6 @@
+airsim==1.2.8
+msgpack-python==0.5.6
+msgpack-rpc-python==0.4.1
+numpy==1.19.1
+opencv-contrib-python==4.4.0.42
+tornado==4.5.3
