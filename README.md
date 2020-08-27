@@ -24,8 +24,7 @@ conda install -c conda-forge boost clang=8.0.1 libcxx=8.0.1
 sudo ln -sf /opt/anaconda3/envs/airsim/bin/clang-8 /opt/anaconda3/envs/airsim/bin/clang++-8
 
 # Install AirSim
-git clone git@github.com/Microsoft/AirSim.git /opt/AirSim
-cd /opt/AirSim
+git clone git@github.com:microsoft/AirSim.git /opt/AirSim
 ./setup.sh
 ./build.sh
 ```
