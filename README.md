@@ -15,18 +15,15 @@ cd /opt/UnrealEngine
 ./GenerateProjectFiles.sh
 make
 
-# Install anaconda and dependencies for airsim on arch https://github.com/microsoft/AirSim/issues/2708#issuecomment-632235479
-# IGNORE IF USING UBUNTU: Comment out any "sudo apt-get" in setup.sh
-curl https://repo.anaconda.com/archive/Anaconda3-2020.07-Linux-x86_64.sh  | bash # Place in /opt/anaconda3 when asked 
-conda create --name airsim
-conda activate airsim
-conda install -c conda-forge boost clang=8.0.1 libcxx=8.0.1
-sudo ln -sf /opt/anaconda3/envs/airsim/bin/clang-8 /opt/anaconda3/envs/airsim/bin/clang++-8
-
 # Install AirSim
 git clone git@github.com:microsoft/AirSim.git /opt/AirSim
 ./setup.sh
 ./build.sh
+
+# Install PX4 Firmware
+git clone git@github.com:PX4/Firmware.git /opt/PX4_Firmware
+cd /opt/PX4_Firmware
+DONT_RUN=1 make px4_sitl_default none_iris
 ```
 
 
