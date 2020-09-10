@@ -8,7 +8,7 @@
 
 ## Explanation
 
-![Classes UML](img/UML/classes_jhe_meng_project.svg)
+![Classes UML](img/UML/classes_jhe_meng_project.png)
 
 ## Install
 
