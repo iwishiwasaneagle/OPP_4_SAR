@@ -13,6 +13,4 @@ run:
 	python3 main.py; \
 
 install:
-	python3 -m venv venv; \ 
-	source ${VENV}; \
 	pip3 install -r requirements.txt; \
