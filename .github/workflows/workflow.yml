@@ -31,7 +31,7 @@ jobs:
         run: |
           pip3 install setuptools pylint
           make install
-      
+          apt install graphviz
 #       - name: Run simulation
 #         run: make run
       
