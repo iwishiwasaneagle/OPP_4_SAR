@@ -1,5 +1,5 @@
+setuptools==50.3.0 
 matplotlib==3.2.2
 numpy==1.18.4
-setuptools==49.6.0
 wheel==0.35.1
 pylint==2.6.0
