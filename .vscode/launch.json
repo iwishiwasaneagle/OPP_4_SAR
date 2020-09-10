@@ -8,7 +8,14 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "simulation.py",
+            "program": "${file}",
+            "console": "internalConsole"
+        },
+        {
+            "name": "Python: main.py",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
             "console": "internalConsole"
         }
     ]
