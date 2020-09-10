@@ -1,9 +1,12 @@
 VENV=./venv/bin/activate
-
+UMLDIR=./img/UML
 uml:
-	mkdir -P UML
-	cd UML; \
-	pyreverse -o svg -p jhe_meng_project $$(find ../ -type f \( -name "*.py" ! -path "../venv/*" \))
+	pip3 install pylint
+	rm -rf ${UMLDIR}
+	pyreverse -o svg -p jhe_meng_project $$(find ./ -type f \( -name "*.py" ! -path "./venv/*" \))
+	mkdir -p ${UMLDIR}
+	mv classes*.svg ${UMLDIR}
+	mv packages*.svg ${UMLDIR}
 
 run:
 	source ${VENV}; \
