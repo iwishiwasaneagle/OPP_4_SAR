@@ -16,11 +16,16 @@ cd /opt/UnrealEngine
 make
 
 # Install AirSim
-git clone git@github.com/Microsoft/AirSim.git /opt/AirSim
-cd /opt/AirSim
+git clone git@github.com:microsoft/AirSim.git /opt/AirSim
 ./setup.sh
 ./build.sh
+
+# Install PX4 Firmware
+git clone git@github.com:PX4/Firmware.git /opt/PX4_Firmware
+cd /opt/PX4_Firmware
+DONT_RUN=1 make px4_sitl_default none_iris
 ```
+
 
 
 
