@@ -1,7 +1,6 @@
 VENV=./venv/bin/activate
 UMLDIR=./img/UML
-uml:
-	pip3 install pylint
+uml:	
 	rm -rf ${UMLDIR}
 	pyreverse -o png -p jhe_meng_project $$(find ./ -type f \( -name "*.py" ! -path "./venv/*" \))
 	mkdir -p ${UMLDIR}
