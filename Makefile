@@ -3,10 +3,10 @@ UMLDIR=./img/UML
 uml:
 	pip3 install pylint
 	rm -rf ${UMLDIR}
-	pyreverse -o svg -p jhe_meng_project $$(find ./ -type f \( -name "*.py" ! -path "./venv/*" \))
+	pyreverse -o png -p jhe_meng_project $$(find ./ -type f \( -name "*.py" ! -path "./venv/*" \))
 	mkdir -p ${UMLDIR}
-	mv classes*.svg ${UMLDIR}
-	mv packages*.svg ${UMLDIR}
+	mv classes*.png ${UMLDIR}
+	mv packages*.png ${UMLDIR}
 
 run:
 	source ${VENV}; \
