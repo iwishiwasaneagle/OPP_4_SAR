@@ -23,7 +23,9 @@ jobs:
       - uses: actions/checkout@v2
       
       - name: Install requirements
-        run: make install
+        run: |
+          sudo apt-get install python3-venv
+          make install
       
 #       - name: Run simulation
 #         run: make run
