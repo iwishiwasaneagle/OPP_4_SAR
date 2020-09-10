@@ -16,7 +16,7 @@ def simulation(waypoints):
     vehicle = Vehicle(pos=Pose.fromWP(waypoints[0]),size=3, animate=animate)
 
     t = 0    
-    n_run = 2
+    n_run = 5
     for trajectory in trajectories:
         
         if trajectories.loop >= n_run:
@@ -37,11 +37,4 @@ def simulation(waypoints):
             t += dt
 
     print("Done")
-
-def main():
-    waypoints = Waypoints(Waypoint(5,0,0), Waypoint(10, 0, 0), Waypoint(10, 10, 0),Waypoint(0, 10, 0))
-
-    simulation(waypoints)
-
-if __name__ == "__main__":
-    main()
+    return vehicle
