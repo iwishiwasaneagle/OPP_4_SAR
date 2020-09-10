@@ -5,36 +5,39 @@ from simulation.trajectory import Trajectory, Trajectories
 from simulation.parameters import *
 from models.positional.waypoint import Waypoint, Waypoints
 from models.positional.pose import Pose
+from typing import List, Tuple
 
-def simulation(waypoints): 
+class simulation:
+    def __init__(self, waypoints: Waypoints=Waypoints()):
+        self.waypoints=waypoints
+        self.trajectories=Trajectories()
+    
+    def run(self) -> Vehicle:
+        for i,wp in enumerate(self.waypoints):
+            trajectory = Trajectory(self.waypoints[i], self.waypoints[(i + 1) % len(self.waypoints)], 5)
+            self.trajectories.add(trajectory)
 
-    trajectories = Trajectories()    
-    for i,wp in enumerate(waypoints):
-        trajectory = Trajectory(waypoints[i], waypoints[(i + 1) % len(waypoints)], 5)
-        trajectories.add(trajectory)
+        vehicle = Vehicle(pos=Pose.fromWP(self.waypoints[0]),size=3, animate=animate)
 
-    vehicle = Vehicle(pos=Pose.fromWP(waypoints[0]),size=3, animate=animate)
+        t = 0    
+        n_run = 5
+        for trajectory in self.trajectories:
 
-    t = 0    
-    n_run = 5
-    for trajectory in trajectories:
-        
-        if trajectories.loop >= n_run:
-            break
+            if self.trajectories.loop_count >= n_run:
+                break
 
-        t_local = 0
-        while t_local <= trajectory.T:
-            # Calc desired position, velocity and acceleration from generated polynomial trajectory
-            des_pos = trajectory.position(t_local)
-            des_vel = trajectory.velocity(t_local)
-            des_acc = trajectory.acceleration(t_local)
+            t_local = 0
+            while t_local <= trajectory.T:
+                # Calc desired position, velocity and acceleration from generated polynomial trajectory
+                des_pos = trajectory.position(t_local)
+                des_vel = trajectory.velocity(t_local)
+                des_acc = trajectory.acceleration(t_local)
 
-            # Step the vehicle
-            vehicle.step(des_pos, des_vel, des_acc)
+                # Step the vehicle
+                vehicle.step(des_pos, des_vel, des_acc)
 
-            # Update time
-            t_local += dt
-            t += dt
+                # Update time
+                t_local += dt
+                t += dt
 
-    print("Done")
-    return vehicle
+        return vehicle
