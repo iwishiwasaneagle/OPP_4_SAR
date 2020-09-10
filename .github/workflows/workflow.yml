@@ -28,7 +28,9 @@ jobs:
           python-version: 3.8
       
       - name: Install
-        run: make install
+        run: |
+          pip3 install setuptools pylint
+          make install
       
 #       - name: Run simulation
 #         run: make run
