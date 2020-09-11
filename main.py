@@ -1,5 +1,5 @@
 import simulation.simulation
-from models.positional.waypoint import Waypoint, Waypoints
+from data_models.positional.waypoint import Waypoint, Waypoints
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 

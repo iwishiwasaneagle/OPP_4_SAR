@@ -1,7 +1,7 @@
 import numpy as np
-from models.positional.waypoint import Waypoint, Waypoints
-from models.positional.pose import Pose
-from models.positional.abstractListObject import AbstractListObject
+from data_models.positional.waypoint import Waypoint, Waypoints
+from data_models.positional.pose import Pose
+from data_models.positional.abstractListObject import AbstractListObject
 
 from typing import List, TypeVar, Tuple
 
@@ -10,7 +10,7 @@ T = TypeVar('T', bound='Trajectories')
 U = TypeVar('U', bound='Trajectory')
 class Trajectories(AbstractListObject):
     def __init__(self, *argv):
-        super().__init__(True, *argv)
+        super().__init__(*argv)
     
     
 class Trajectory:

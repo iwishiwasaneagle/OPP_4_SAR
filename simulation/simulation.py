@@ -3,8 +3,8 @@ import numpy as np
 from simulation.vehicle import Vehicle
 from simulation.trajectory import Trajectory, Trajectories
 from simulation.parameters import *
-from models.positional.waypoint import Waypoint, Waypoints
-from models.positional.pose import Pose
+from data_models.positional.waypoint import Waypoint, Waypoints
+from data_models.positional.pose import Pose
 from typing import List, Tuple
 
 class simulation:
@@ -19,13 +19,8 @@ class simulation:
 
         vehicle = Vehicle(pos=Pose.fromWP(self.waypoints[0]),size=3, animate=animate)
 
-        t = 0    
-        n_run = 5
+        t = 0   
         for trajectory in self.trajectories:
-
-            if self.trajectories.loop_count >= n_run:
-                break
-
             t_local = 0
             while t_local <= trajectory.T:
                 # Calc desired position, velocity and acceleration from generated polynomial trajectory

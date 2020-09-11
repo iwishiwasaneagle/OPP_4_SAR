@@ -2,8 +2,8 @@ from math import cos, sin
 import numpy as np
 import matplotlib.pyplot as plt
 from simulation.parameters import *
-from models.positional.pose import Pose
-from models.positional.RPY import RPY
+from data_models.positional.pose import Pose
+from data_models.positional.RPY import RPY
 from typing import List
 
 class Vehicle():
