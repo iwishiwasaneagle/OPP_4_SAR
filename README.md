@@ -4,9 +4,11 @@
 
 # Jan-Hendrik Ewers MEng repo
 
+![CI](https://github.com/iwishiwasaneagle/JHE_MEng/workflows/CI/badge.svg)
+
 ## Explanation
 
-![Classes UML](img/UML/classes_jhe_meng_project.svg)
+![Classes UML](img/UML/classes_jhe_meng_project.png)
 
 ## Install
 

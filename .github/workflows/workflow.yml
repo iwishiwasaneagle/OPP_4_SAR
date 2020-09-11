@@ -31,7 +31,7 @@ jobs:
         run: |
           pip3 install setuptools pylint
           make install
-      
+          sudo apt install graphviz
 #       - name: Run simulation
 #         run: make run
       
@@ -40,7 +40,9 @@ jobs:
           
       - name: Commit UML changes
         run: |
-          git commit img/UML/* -m "Auto: Updated UML"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit img/UML/* -m "Auto: Updated UML" || true
           
       - name: Push changes
         uses: ad-m/github-push-action@master
