@@ -31,12 +31,12 @@ class Trajectory:
 
     def solve(self) -> None:
         A = np.array(
-            [[0, 0, 0, 0, 0, 1],
-             [self.T**5, self.T**4, self.T**3, self.T**2, self.T, 1],
-             [0, 0, 0, 0, 1, 0],
-             [5*self.T**4, 4*self.T**3, 3*self.T**2, 2*self.T, 1, 0],
-             [0, 0, 0, 2, 0, 0],
-             [20*self.T**3, 12*self.T**2, 6*self.T, 2, 0, 0]
+            [[0, 0, 0, 0, 0, 1], # f(t=0)
+             [self.T**5, self.T**4, self.T**3, self.T**2, self.T, 1], # f(t=T)
+             [0, 0, 0, 0, 1, 0], # f'(t=0)
+             [5*self.T**4, 4*self.T**3, 3*self.T**2, 2*self.T, 1, 0], # f'(t=T)
+             [0, 0, 0, 2, 0, 0], # f''(t=0)
+             [20*self.T**3, 12*self.T**2, 6*self.T, 2, 0, 0] # f''(t=T)
             ])
 
         b_x = np.array(
