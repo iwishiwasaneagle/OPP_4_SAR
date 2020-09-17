@@ -17,7 +17,7 @@ class simulation:
             trajectory = Trajectory(self.waypoints[i], self.waypoints[(i + 1) % len(self.waypoints)], 5)
             self.trajectories.add(trajectory)
 
-        vehicle = Vehicle(pos=Pose.fromWP(self.waypoints[0]),size=3, animate=animate)
+        vehicle = Vehicle(pos=Pose.fromWP(self.waypoints[0]), animate=animate)
 
         t = 0   
         for trajectory in self.trajectories:
