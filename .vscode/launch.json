@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: LHC_GW_CONV",
+            "type": "python",
+            "request": "launch",
+            "program": "waypoint_generation/LHC_GW_CONV.py",
+            "console": "internalConsole"
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
