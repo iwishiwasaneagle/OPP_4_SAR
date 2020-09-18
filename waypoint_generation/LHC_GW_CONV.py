@@ -16,10 +16,14 @@ class LHC_GW_CONV(BaseWPGenerator):
 
         # self.C
 
+    @property
+    def waypoints(self):
+        return self.LHC()
+
     def LHC(self) -> Waypoints:
         wps = Waypoints()
         cur = self.start
-        for i in range(5):
+        for i in range(60):
             neighbours = np.array(self.neighbours(cur))
             best = neighbours[np.argmax(neighbours[:,1])][0]
 
