@@ -2,12 +2,29 @@ import simulation.simulation
 from data_models.positional.waypoint import Waypoint, Waypoints
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from simulation.parameters import *
 
-waypoints = Waypoints([Waypoint(5,0), Waypoint(10, 0), Waypoint(10, 10),Waypoint(0, 10)])
+
+from data_models.probability_map import ProbabilityMap
+from waypoint_generation.waypoint_factory import WaypointFactory, WaypointAlgorithmEnum
+
+prob_map_img = "waypoint_generation/prob_map_1.png"
+prob_map = ProbabilityMap.fromPNG(prob_map_img)
+
+waypoints = WaypointFactory(WaypointAlgorithmEnum.LHC_GW_CONV_E, prob_map, Waypoint(100,0)).generate()
+
+# waypoints = Waypoints([Waypoint(5,0), Waypoint(10, 0), Waypoint(10, 10),Waypoint(0, 10)])
+
+
+
 
 sim = simulation.simulation.simulation(waypoints)
 vehicle = sim.run()
 
-plt.figure(2)
-plt.plot(vehicle.data['pos']['y'], vehicle.data['pos']['x'], '-r')
+plt.figure()
+
+plt.imshow(prob_map.img)
+plt.plot(vehicle.data['pos']['x'], vehicle.data['pos']['y'], '-r')
+plt.xlim(0,n)
+plt.ylim(0,m)
 plt.show()
