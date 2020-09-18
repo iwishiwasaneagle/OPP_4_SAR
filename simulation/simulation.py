@@ -14,7 +14,7 @@ class simulation:
     
     def run(self) -> Vehicle:
         for i,wp in enumerate(self.waypoints):
-            trajectory = Trajectory(self.waypoints[i], self.waypoints[(i + 1) % len(self.waypoints)], 5)
+            trajectory = Trajectory(self.waypoints[i], self.waypoints[(i + 1) % len(self.waypoints)], 0.5, start_vel=Pose(1,1), dest_vel=Pose(1,1))
             self.trajectories.add(trajectory)
 
         vehicle = Vehicle(pos=Pose.fromWP(self.waypoints[0]), animate=animate)

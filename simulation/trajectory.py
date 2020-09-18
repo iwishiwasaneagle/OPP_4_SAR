@@ -73,9 +73,6 @@ class Trajectory:
         else:
             raise StopIteration
 
-    def __len__(self) -> int:
-        return len(self.x)
-
     def acceleration(self, t: float) -> Pose:
         calc = lambda c,t: 20 * c[0] * t**3 + 12 * c[1] * t**2 + 6 * c[2] * t + 2 * c[3]
         return Pose(calc(self.coeffs['x'], t), calc(self.coeffs['y'], t))
