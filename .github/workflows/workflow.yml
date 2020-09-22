@@ -39,8 +39,8 @@ jobs:
       - name: Build UML
         run: make uml
       
-       - name: Build badges
-         run: make badges
+      - name: Build badges
+        run: make badges
           
       - name: Commit UML and badges changes
         run: |
