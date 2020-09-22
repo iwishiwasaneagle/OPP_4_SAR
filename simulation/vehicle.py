@@ -82,9 +82,9 @@ class Vehicle:
 
         
 
-        plt.xlim(0,n)
-        plt.ylim(0,m)
+        plt.xlim(self.pos.x-10,self.pos.x+10)
+        plt.ylim(self.pos.y-10,self.pos.y+10)
 
-        plt.pause(dt)
+        plt.pause(0.001)
     
     
