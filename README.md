@@ -5,6 +5,7 @@
 # Jan-Hendrik Ewers MEng repo
 
 ![CI](https://github.com/iwishiwasaneagle/JHE_MEng/workflows/CI/badge.svg)
+![Lines of Code](https://github.com/iwishiwasaneagle/JHE_MEng/img/lines.svg)
 
 ## Explanation
 
