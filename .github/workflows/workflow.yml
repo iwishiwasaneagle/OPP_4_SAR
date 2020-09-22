@@ -37,12 +37,17 @@ jobs:
       
       - name: Build UML
         run: make uml
+      
+      - name: Build badges
+        run: make badges
           
-      - name: Commit UML changes
+      - name: Commit UML and badges changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit img/UML/* -m "Auto: Updated UML" || true
+          git commit img/lines.svg -m "Auto: Updated badges" || true
+          git commit helper/lines.csv -m "Auto: Updated lines.csv" || true
           
       - name: Push changes
         uses: ad-m/github-push-action@master
