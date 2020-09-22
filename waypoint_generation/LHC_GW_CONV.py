@@ -46,10 +46,15 @@ class LHC_GW_CONV(BaseWPGenerator):
         ]
 
         return [(f, self.prob_map[f[0], f[1]]) for f in neighbours if min(f) > 0 and f[0] < self.prob_map.shape[0] and f[1] < self.prob_map.shape[1]]
-        
+       
 
 def main():
+    import matplotlib.pyplot as plt
     wps = LHC_GW_CONV(ProbabilityMap.fromPNG("waypoint_generation/probs_map_1.png"), Waypoint(0,0)).LHC()
+
+    plt.figure()
+    plt.imshow(wps.prob_map.img)
+    plt.show()
 
     print(wps)
 
