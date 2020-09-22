@@ -29,9 +29,10 @@ jobs:
       
       - name: Install
         run: |
-          pip3 install setuptools pylint
+          pip3 install setuptools pylint anybadge
           make install
-          sudo apt install graphviz
+          sudo apt install graphviz cloc
+          
 #       - name: Run simulation
 #         run: make run
       
