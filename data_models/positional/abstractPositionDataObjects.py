@@ -33,6 +33,13 @@ class AbstractPoseDataObject(ABC):
     def __len__(self):
         return 2 
 
+    def __eq__(self, value):
+        if isinstance(value, (AbstractPoseDataObject, list, tuple)):
+            return value[0] == self.__getitem__(0) and value[1] == self.__getitem__(1)
+        return False
+    def __ne__(self, value):
+        return not self.__eq__(value)
+
 
 class AbstractPositionDataObject(AbstractPoseDataObject):
     def __init__(self, x,y):
