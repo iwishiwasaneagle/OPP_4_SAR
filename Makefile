@@ -16,4 +16,10 @@ install:
 
 badges:
 	bash helper/lines.sh
-	
+
+test:
+	source ${VENV}; \
+	pytest test.py; \
+
+clean:
+	fd -td -I -E venv __pycache__ -X rm -rf
