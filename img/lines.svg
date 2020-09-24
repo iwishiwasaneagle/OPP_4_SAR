@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="102" height="20">
     <linearGradient id="b" x2="0" y2="100%">
@@ -21,3 +22,5 @@
         <text x="70.0" y="14">784 lines</text>
     </g>
 </svg>
+=======
+>>>>>>> 2b8b5ff517f84ff5ea024e8a16f69f3776d43a1d
