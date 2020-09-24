@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: LHC_GW_CONV",
+            "name": "Python: pytest",
             "type": "python",
             "request": "launch",
-            "program": "waypoint_generation/LHC_GW_CONV.py",
-            "console": "internalConsole"
+            "module": "pytest",
+            "args": ["test.py"]
         },
         {
             "name": "Python: Current File",
@@ -23,7 +23,7 @@
             "type": "python",
             "request": "launch",
             "program": "main.py",
-            "console": "internalConsole"
+            "console": "integratedTerminal"
         }
     ]
 }
