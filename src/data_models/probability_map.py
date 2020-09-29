@@ -10,6 +10,7 @@ T = TypeVar('T', bound='ProbabilityMap')
 class ProbabilityMap:
     def __init__(self, prob_map: list):
         self.prob_map = np.array(prob_map)
+        self._prob_map = self.prob_map
         self.sum = np.sum(prob_map)
         self.max = np.max(prob_map)
         self.shape = np.shape(prob_map) # Bake it, for performance
@@ -21,8 +22,8 @@ class ProbabilityMap:
         return prob
 
     def toIMG(self) -> Image:
-        img_arr = np.array([[(f,f,f) for f in g] for g in self.prob_map]).astype(np.uint8)
-        img = Image.fromarray(img_arr)#ImageOps.flip(Image.fromarray(img_arr)).rotate(-90)
+        img_arr = np.array([[(f,f,f) for f in g] for g in self._prob_map]).astype(np.uint8)
+        img = Image.fromarray(img_arr)
         return img 
 
 
