@@ -13,20 +13,28 @@ class WaypointAlgorithmEnum(IntEnum):
 
 
 class WaypointFactory:
-    def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, start: Waypoint, threaded: bool=True):
+    def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, threaded: bool=True, animate: bool = False):
         self.alg = alg
         self.prob_map = prob_map
 
-        self.start = start
+        self.start = Waypoint(0,0) 
         self.end = None
         
         self.threaded = threaded
+        self.animate = animate
     
     def setEnd(self, x:int, y:int) -> T:
         self.end = Waypoint(x,y)
         return self
 
     def generate(self) -> Waypoints:
+        kwargs = {'prob_map':self.prob_map,'threaded':self.threaded,'animate':self.animate}
+        
         if self.alg == WaypointAlgorithmEnum.LHC_GW_CONV_E:
             from src.waypoint_generation.LHC_GW_CONV import LHC_GW_CONV
-            return LHC_GW_CONV(self.prob_map, self.start, self.end, threaded=self.threaded).waypoints
+            return LHC_GW_CONV(self.start, self.end, 10, **kwargs).waypoints
+           
+        elif self.alg == WaypointAlgorithmEnum.MODIFIED_LAWNMOWER:
+            from src.waypoint_generation.modified_lawnmower import ModifiedLawnmower
+            return ModifiedLawnmower(**kwargs).waypoints
+
