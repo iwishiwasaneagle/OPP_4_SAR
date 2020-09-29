@@ -37,29 +37,17 @@ class ConvolutionResult:
         else :         raise IndexError(f"{key} > 2")
 
 class LHC_GW_CONV(BaseWPGenerator):
-    def __init__(self, prob_map: ProbabilityMap, start: Waypoint, end:Waypoint = None, l:int=100, animate: bool = animate, threaded: bool = True):
-        super().__init__()
-
-        self.prob_map = prob_map
+    def __init__(self, start: Waypoint, end:Waypoint = None, l:int=35, **kwargs):
+        
         self.start = start
         self.end = end
         self.l = l
         self.search_threshold = 0
 
-        self.threaded = threaded
-        self.animate = not self.threaded and animate
-
-        if self.animate:
-            plt.ion()
-            fig = plt.figure()
-            # for stopping simulation with the esc key.
-            fig.canvas.mpl_connect('key_release_event',
-                    lambda event: [exit(0) if event.key == 'escape' else None])
-
-            self._ax = fig.add_subplot(111)
+        super().__init__(**kwargs)
 
     @property
-    def waypoints(self):
+    def waypoints(self) -> Waypoints:
         return self.GW()
 
     def _inf(self) -> int:
@@ -145,7 +133,7 @@ class LHC_GW_CONV(BaseWPGenerator):
                             convs = [ConvolutionType.HYUGE] 
                         conv_c = 0
                         while ind is None:
-                            conv_probs = np.array([self.convolute(neighbours[f][0],visited,temp_prob_map,convs[conv_c]) for f in inds])
+                            conv_probs = np.array([self.convolute(neighbours[f][0],temp_prob_map,convs[conv_c]) for f in inds])
 
                             conv = [f.value for f in conv_probs]
                             conv_max = np.max(conv)
@@ -190,7 +178,7 @@ class LHC_GW_CONV(BaseWPGenerator):
         else: 
             return Waypoints(wps)
 
-    def convolute(self, pos: Waypoint, visited: Waypoints, prob_map: ProbabilityMap, conv_type: ConvolutionType):
+    def convolute(self, pos: Waypoint, prob_map: ProbabilityMap, conv_type: ConvolutionType):
         kernel = None
         n = 0
         if conv_type is ConvolutionType.SMALL:
@@ -204,11 +192,10 @@ class LHC_GW_CONV(BaseWPGenerator):
         else:
             raise TypeError(f"Unknown ConvolutionType: {type(conv_type)} with value {conv_type}")
         
-        kernel = np.ones((n,n))
+        kernel = np.ones((n,n))/n
 
-        sum_ = 0
         shift = int((n-1)/2)
-
+        sum_ = 0
         c = 1
         for i in range(n):
             for j in range(n):
@@ -217,14 +204,13 @@ class LHC_GW_CONV(BaseWPGenerator):
                 if (iprime,jprime) == (0,0): continue
 
                 eval_pos = Waypoint(pos.x+iprime,pos.y+jprime)
-                if eval_pos in visited: continue
+#                if eval_pos in visited: continue
 
 
                 prob = prob_map[eval_pos] * kernel[i,j] 
 
                 sum_ += prob
-                c += 1
-        return ConvolutionResult(pos,sum_/float(c),n)
+        return ConvolutionResult(pos,sum_,n)
 
     def validate(self, pos: Waypoint, visited: Waypoints, prob_map: ProbabilityMap):
         return len(self.neighbours(pos, visited, prob_map)) > 0 # True if 1 or more valid position exists
