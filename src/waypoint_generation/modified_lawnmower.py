@@ -6,7 +6,7 @@ import itertools
 import time
 
 class ModifiedLawnmower(BaseWPGenerator):
-    def __init__(self, turn_radius:int=2, max_iter: int=np.iinfo(np.int64).max, **kwargs):
+    def __init__(self, turn_radius:int=2, max_iter: int=np.iinfo(np.int32).max, **kwargs):
         self.turn_radius = turn_radius
         self.max_iter = max_iter
 
