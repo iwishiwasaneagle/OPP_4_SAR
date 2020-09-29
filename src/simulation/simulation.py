@@ -8,9 +8,10 @@ from src.data_models.positional.pose import Pose
 from typing import List, Tuple
 
 class simulation:
-    def __init__(self, waypoints: Waypoints=Waypoints()):
+    def __init__(self, waypoints: Waypoints=Waypoints(), animate:bool=False):
         self.waypoints=waypoints
         self.trajectories=Trajectories()
+        self.animate = animate
     
     def run(self) -> Vehicle:
         for i,wp in enumerate(self.waypoints):
@@ -20,7 +21,7 @@ class simulation:
             except IndexError:
                 break
 
-        vehicle = Vehicle(pos=Pose.fromWP(self.waypoints[0]), animate=animate)
+        vehicle = Vehicle(pos=Pose.fromWP(self.waypoints[0]), animate=self.animate)
 
         t = 0   
         for trajectory in self.trajectories:

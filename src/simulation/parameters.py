@@ -1,5 +1,3 @@
-# Animate simulation?
-animate = False 
 # Repeat simulation? (only applies if animate == True)
 repeat = True
 

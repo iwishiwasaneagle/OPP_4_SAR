@@ -7,7 +7,7 @@ from src.data_models.positional.angle import Yaw
 from typing import List
 
 class Vehicle:
-    def __init__(self, pos=Pose.zero(), dpos=Pose.zero(), ddpos=Pose.zero(), des_yaw:float=0, animate=True):
+    def __init__(self, pos=Pose.zero(), dpos=Pose.zero(), ddpos=Pose.zero(), des_yaw:float=0, animate:bool=False):
         self.pos = pos
         self.dpos = dpos
         self.ddpos = ddpos
@@ -85,6 +85,6 @@ class Vehicle:
         plt.xlim(self.pos.x-10,self.pos.x+10)
         plt.ylim(self.pos.y-10,self.pos.y+10)
 
-        plt.pause(0.001)
+        plt.pause(0.1)
     
     
