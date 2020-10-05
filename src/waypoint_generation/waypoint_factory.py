@@ -36,5 +36,5 @@ class WaypointFactory:
            
         elif self.alg == WaypointAlgorithmEnum.MODIFIED_LAWNMOWER:
             from src.waypoint_generation.modified_lawnmower import ModifiedLawnmower
-            return ModifiedLawnmower(**kwargs).waypoints
+            return ModifiedLawnmower(max_iter=1e8,**kwargs).waypoints
 

@@ -32,18 +32,16 @@ class ModifiedLawnmower(BaseWPGenerator):
 
         perm_iter = itertools.permutations(np.random.permutation(arr_to_perm))
 
+
         cost_opt = np.inf
-        theoretical_cost_opt = np.sum([np.min(C_turn) for f in arr_to_perm])
         p_opt = None
         c = 0
         t0 = time.time()
 
+        test_perm_func = self.__test_permutation
+        max_iter = self.max_iter
         for perm in perm_iter:
-            pj_old = perm[0]
-            cost = 0
-            for pj in perm[1:]:
-                cost += C_turn[pj-pj_old] # pj-pj_old is dist between lanes
-                pj_old = pj
+            cost = test_perm_func(C_turn, perm)
 
             if cost<cost_opt:
                 string = f"{100*float(c)/N_perms:.2f}% after {time.time()-t0:.1f}s and {c} iterations | New best: p_opt={p_opt} with cost={cost_opt}"
@@ -53,15 +51,16 @@ class ModifiedLawnmower(BaseWPGenerator):
 
             c+=1
             if c==1 or c%5000==0:
-                string = f"{100*float(c)/N_perms:.2f}% after {time.time()-t0:.1f}s and {c}/{N_perms if N_perms<self.max_iter else self.max_iter} iterations | p_cur={perm} with cost={cost}"
+                string = f"{100*float(c)/(N_perms if N_perms<max_iter else max_iter):.2f}% after {time.time()-t0:.1f}s and {c}/{N_perms if N_perms<max_iter else max_iter} iterations | p_cur={perm} with cost={cost}"
                 print(" "*len(string),end='\r')
                 print(string,end='\r')
-            if c >= self.max_iter or cost_opt<=theoretical_cost_opt*20: 
+
+            if c >= max_iter: 
                 break
         
-        string = f"{100*float(c)/N_perms:.2f}% after {time.time()-t0:.1f}s and {c} iterations | p_opt={p_opt} with cost={cost_opt} (best possible is {theoretical_cost_opt})"
+        string = f"{100*float(c)/N_perms:.2f}% after {time.time()-t0:.1f}s and {c} iterations | p_opt={p_opt} with cost={cost_opt}"
         print(" "*len(string),end='\r')
-        print(string,end='\r')
+        print(string,end='\n')
 
         wps = Waypoints([Waypoint(0,0)])
 
@@ -87,6 +86,28 @@ class ModifiedLawnmower(BaseWPGenerator):
             at_bottom = not at_bottom
         
         return wps
+
+    def __test_permutation(self, C_turn: list, perm: list)-> float:
+        pj_old = perm[0]
+        cost = 0
+        for pj in perm[1:]:
+            cost += C_turn[pj-pj_old] # pj-pj_old is dist between lanes
+            pj_old = pj
+        return cost
+        # ---> above took 10.5s over 1000000 iterations
+
+        # return sum([C_turn[perm[f]-perm[f-1]] for f in range(1,len(perm))])
+        # ---> above took 13.4s over 1000000
+
+        # return sum([C_turn[f-g] for f,g in zip(perm[1:],perm[0:-1])])
+        # 12.6s
+        
+        # cost = 0
+        # for f,g in zip(perm[1:],perm[0:-1]):
+        #     cost += C_turn[f-g]
+        # return cost
+        # 11.6s
+
 
 
 

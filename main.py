@@ -8,7 +8,7 @@ from src.simulation.parameters import *
 from src.data_models.probability_map import ProbabilityMap
 from src.waypoint_generation.waypoint_factory import WaypointFactory, WaypointAlgorithmEnum
 
-prob_map_img = "img/probability_imgs/prob_map_5_multimodal_small.png"
+prob_map_img = "img/probability_imgs/prob_map_6_multimodal_tiny.png"
 prob_map = ProbabilityMap.fromPNG(prob_map_img)
 
 
