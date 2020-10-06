@@ -97,8 +97,6 @@ class LHC_GW_CONV(BaseWPGenerator):
         best_prob = 0
         for key in return_dict:
             l = key
-        for key in return_dict:
-            l = key
             wps = return_dict[key]
 
             probability = self.calc_prob(wps)
@@ -141,7 +139,7 @@ class LHC_GW_CONV(BaseWPGenerator):
                         if np.max(neighbours[:,1]) <= self.search_threshold:
                             convs = ConvolutionType.HYUGE 
                        
-                        conv_probs = np.array([self.convolute(neighbours[f][0],visited,temp_prob_map,convs for f in inds])
+                        conv_probs = np.array([self.convolute(neighbours[f][0],visited,temp_prob_map,convs) for f in inds])
 
                         conv = [f.value for f in conv_probs]
                         conv_max = np.max(conv)

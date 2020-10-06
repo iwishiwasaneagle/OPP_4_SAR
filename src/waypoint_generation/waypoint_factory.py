@@ -13,14 +13,18 @@ class WaypointAlgorithmEnum(IntEnum):
 
 
 class WaypointFactory:
-    def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, threaded: bool=True, animate: bool = False):
+    def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, start:Waypoint=Waypoint(0,0), threaded: bool=True, animate: bool = False):
         self.alg = alg
+
+        assert(min(start)>=0 and start.x <= prob_map.shape[0] and start.y <= prob_map.shape[1])
         self.prob_map = prob_map
 
-        self.start = Waypoint(0,0) 
+        self.start = start
         self.end = None
         
+        assert(isinstance(threaded, bool))
         self.threaded = threaded
+        assert(isinstance(animate, bool))
         self.animate = animate
     
     def setEnd(self, x:int, y:int) -> T:
@@ -32,7 +36,7 @@ class WaypointFactory:
         
         if self.alg == WaypointAlgorithmEnum.LHC_GW_CONV_E:
             from src.waypoint_generation.LHC_GW_CONV import LHC_GW_CONV
-            return LHC_GW_CONV(self.start, self.end, 10, **kwargs).waypoints
+            return LHC_GW_CONV(self.start, self.end, 40, **kwargs).waypoints
            
         elif self.alg == WaypointAlgorithmEnum.MODIFIED_LAWNMOWER:
             from src.waypoint_generation.modified_lawnmower import ModifiedLawnmower

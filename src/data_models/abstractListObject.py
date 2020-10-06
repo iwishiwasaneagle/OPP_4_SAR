@@ -28,4 +28,7 @@ class AbstractListObject:
 
     def add(self,item:T)-> None:
         self.items.append(item)
+    
+    def __str__(self):
+        return f"{type(self)} {[str(f) for f in self.items]}"
 

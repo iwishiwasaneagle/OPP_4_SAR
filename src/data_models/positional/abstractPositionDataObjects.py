@@ -4,6 +4,9 @@ class AbstractPoseDataObject(ABC):
     def __init__(self, a, b):
         self._a = a
         self._b = b 
+
+    def __str__(self):
+        return f"{type(self)}:({self._a},{self._b})"
     
     @staticmethod
     @abstractmethod

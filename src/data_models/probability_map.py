@@ -34,8 +34,23 @@ class ProbabilityMap:
             return self.__getitem__((key.x, key.y))
         elif isinstance(key, (tuple, list)):
             i,j = key
-            return self.prob_map[int(j),int(i)]
+            try:
+                return self.prob_map[int(j),int(i)]
+            except IndexError:
+                return -np.iinfo(np.int16).max
+
         raise KeyError(f"Type {type(key)} is not valid")
+
+    def __setitem__(self, key, data):
+        if isinstance(key, int):
+            self.prob_map[key] = data
+        elif isinstance(key, Waypoint):
+            self.prob_map[key.x, key.y] = data
+        elif isinstance(key, (tuple, list)):
+            i,j = key
+            self.prob_map[int(j),int(i)] = data
+        else:
+            raise KeyError(f"Type {type(key)} is not valid")
 
     def __len__(self):
         return self.shape[0]          

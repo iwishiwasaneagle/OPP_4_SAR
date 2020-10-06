@@ -16,7 +16,10 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "internalConsole"
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            }
         },
         {
             "name": "Python: main.py",
