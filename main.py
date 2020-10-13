@@ -8,9 +8,17 @@ from src.simulation.parameters import *
 from src.data_models.probability_map import ProbabilityMap
 from src.waypoint_generation.waypoint_factory import WaypointFactory, WaypointAlgorithmEnum
 
-prob_map_img = "img/probability_imgs/prob_map_6_multimodal_tiny.png"
+prob_map_img = "img/probability_imgs/prob_map_2.png"
 #prob_map_img = "img/probability_imgs/prob_map_6_multimodal_tiny.png"
 prob_map = ProbabilityMap.fromPNG(prob_map_img)
+
+masked = prob_map.sum_along_path([(0,0),(50,50)], radius = 1)
+
+plt.figure()
+plt.imshow(masked.toIMG()) 
+plt.xlim(0,masked.shape[0])
+plt.ylim(0,masked.shape[1])
+plt.show()
 
 
 #waypoints = WaypointFactory(WaypointAlgorithmEnum.LHC_GW_CONV_E, prob_map, Waypoint(0,0),threaded=True,animate=False).generate()
