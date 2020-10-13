@@ -17,5 +17,7 @@
 make install
 ```
 
+## Progress
 
+![Code stats](helper/stats.png)
 
