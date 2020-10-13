@@ -2,7 +2,8 @@ import numpy as np
 from src.simulation.parameters import *
 from typing import TypeVar
 from PIL import Image, ImageOps
-from src.data_models.positional.waypoint import Waypoint
+from src.data_models.positional.waypoint import Waypoint, Waypoints
+from matplotlib.path import Path
 
 T = TypeVar('T', bound='ProbabilityMap')
 
@@ -25,6 +26,30 @@ class ProbabilityMap:
         img_arr = np.array([[(f,f,f) for f in g] for g in self._prob_map]).astype(np.uint8)
         img = Image.fromarray(img_arr)
         return img 
+
+    def sum_along_path(self, path: Waypoints, radius:float=1) -> float:
+        # Construct polygon
+
+        
+
+
+
+
+    def sum_in_polygon(self,polygon: Waypoints, radius: float = 0, is_path_closed: bool = False) -> float:
+        x,y = np.meshgrid(
+            np.arange(self.shape[0]),
+            np.arange(self.shape[1])
+        )
+        x,y = x.flatten(), y.flatten()
+        points = np.vstack((x,y)).T
+        poly = polygon
+        p = Path(poly, closed=is_path_closed)
+        grid = p.contains_points(points, radius = radius) 
+        mask = grid.reshape(self.shape[0], self.shape[1])
+
+        ret = self.prob_map*mask
+
+        return ProbabilityMap(ret)
 
 
     def __getitem__(self, key):

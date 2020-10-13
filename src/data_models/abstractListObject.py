@@ -1,4 +1,5 @@
 from typing import TypeVar, List
+import numpy as np
 T = TypeVar('T',bound='AbstractListObject')
 
 class AbstractListObject:
@@ -31,4 +32,7 @@ class AbstractListObject:
     
     def __str__(self):
         return f"{type(self)} {[str(f) for f in self.items]}"
+
+    def toNumpyArray(self):
+        return np.array(self.items)
 
