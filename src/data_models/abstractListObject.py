@@ -3,8 +3,10 @@ import numpy as np
 T = TypeVar('T',bound='AbstractListObject')
 
 class AbstractListObject:
-    def __init__(self,list_) -> None:
-        self.items: List = list_
+    def __init__(self,*args) -> None:
+        if len(args) == 1 and isinstance(args[0],(tuple, list, T)):
+            args = args[0]   
+        self.items: List = [f for f in args]
 
     def __getitem__(self,key: int) -> T:
         if key<self.__len__():

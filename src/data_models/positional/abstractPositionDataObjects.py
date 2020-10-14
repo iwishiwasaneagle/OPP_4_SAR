@@ -1,10 +1,20 @@
 from abc import ABC, abstractmethod
+import numbers
 
 class AbstractPoseDataObject(ABC):
-    def __init__(self, a, b):
+    def __init__(self, *args):
+        a,b=None,None
+        if len(args) >= 3:
+            raise Exception(f"Too many input arguments. 3 expected, received {len(args)}")
+        elif len(args) == 2 and all([isinstance(f,numbers.Real) for f in args]):
+            a,b = args
+        elif len(args) == 1 and isinstance(args[0],(tuple, list)):
+            a,b = args[0]
+        else:
+            a,b,=0,0
+        if None in (a,b): raise Exception()
         self._a = a
-        self._b = b 
-
+        self._b = b        
     def __str__(self):
         return f"{type(self)}:({self._a},{self._b})"
     
@@ -45,9 +55,8 @@ class AbstractPoseDataObject(ABC):
 
 
 class AbstractPositionDataObject(AbstractPoseDataObject):
-    def __init__(self, x,y):
-        self._a = x
-        self._b = y
+    def __init__(self, *args):
+        super().__init__(*args)
 
     @property
     def x(self) -> float:
@@ -70,7 +79,7 @@ class AbstractPositionDataObject(AbstractPoseDataObject):
     
 class AbstractAngleDataObject(AbstractPoseDataObject):
     def __init__(self, yaw):
-        self._a = yaw
+        super().__init__(yaw,0)
 
     @property
     def yaw(self) -> float:

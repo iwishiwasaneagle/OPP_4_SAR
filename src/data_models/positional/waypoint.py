@@ -7,13 +7,12 @@ w = TypeVar('w',bound='Waypoint')
 
 
 class Waypoints(AbstractListObject):
-    def __init__(self, list_:list=[]):
-        super().__init__(list_)
+    def __init__(self, *args):
+        super().__init__(*args)
 
 class Waypoint(AbstractPositionDataObject):
-    def __init__(self,x:float,y:float):
-        super().__init__(x,y)
-    
+    def __init__(self,*args):
+        super().__init__(*args)    
     @staticmethod
     def zero():
         return Waypoint(0,0)
