@@ -12,12 +12,13 @@ prob_map_img = "img/probability_imgs/prob_map_2.png"
 #prob_map_img = "img/probability_imgs/prob_map_6_multimodal_tiny.png"
 prob_map = ProbabilityMap.fromPNG(prob_map_img)
 
-masked = prob_map.sum_along_path([(0,0),(50,50)], radius = 1)
+prob_map.lq_shape = (10,10)
 
+img = prob_map.toIMG(prob_map.lq_prob_map)
 plt.figure()
-plt.imshow(masked.toIMG()) 
-plt.xlim(0,masked.shape[0])
-plt.ylim(0,masked.shape[1])
+plt.imshow(img) 
+plt.xlim(0,10)
+plt.ylim(0,10)
 plt.show()
 
 
