@@ -1,10 +1,11 @@
 clear all;
 
+rng default
 global prob_map ;
 prob_map_img = imread('prob_map.png');
 prob_map = prob_map_img(:,:,1);
 
-wps = 25;
+wps = 4;
 
 lower = 1;
 upper = length(prob_map_img);

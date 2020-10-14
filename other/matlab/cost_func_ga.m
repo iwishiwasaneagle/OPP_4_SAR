@@ -23,26 +23,4 @@ function c = cost_func_ga(x_inp)
         c = c + 5*length(xi);          
         x1 = x2;    
     end
-    
-%     x1 = x_inp(1,:);
-%     x2 = x_inp(2,:);
-%     for i = 3:length(x_inp)
-%         x3 = x_inp(i,:);
-%         
-%         v1 = x1-x2;
-%         v2 = x3-x2;
-%         
-%         ang = acos(dot(v1,v2)/(norm(v1)*norm(v2)));
-%         if any([~isnan(ang) isreal(ang)])
-%             % Encourage large angles (smooth)
-%             c = c + ang;
-%         else
-%             % One of the vectors v1 or v2 has length 0 and must be
-%             % penalized
-%             c = c + 1000;
-%         end
-%         
-%         x1 = x2;
-%         x2 = x3;        
-%     end
 end
