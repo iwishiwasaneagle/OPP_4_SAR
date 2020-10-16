@@ -4,7 +4,7 @@ T = TypeVar('T',bound='AbstractListObject')
 
 class AbstractListObject:
     def __init__(self,*args) -> None:
-        if len(args) == 1 and isinstance(args[0],(tuple, list, T)):
+        if len(args) == 1 and isinstance(args[0],(tuple, list)):
             args = args[0]   
         self.items: List = [f for f in args]
 

@@ -3,7 +3,10 @@ from src.simulation.parameters import *
 from typing import TypeVar
 from PIL import Image, ImageOps
 from src.data_models.positional.waypoint import Waypoint, Waypoints
-from matplotlib.path import Path
+import matplotlib.path as mpp
+import matplotlib.transforms as mpt
+
+import matplotlib.pyplot as plt
 
 T = TypeVar('T', bound='ProbabilityMap')
 
@@ -16,20 +19,19 @@ class ProbabilityMap:
         self._hq_shape = np.shape(prob_map) # Bake it, for performance
         self._lq_shape = self._hq_shape
         
-        assert(np.sum(self.hq_prob_map) == 1)
+        assert(np.isclose(np.sum(self.hq_prob_map),1))
         
-        self.max = np.max(prob_map)
-
     @staticmethod
     def fromPNG(img_path: str) -> T:
         img = Image.open(img_path)
         prob =  ProbabilityMap(np.array(img)[:,:,0])
         return prob
 
-    def toIMG(self,prob_map=None) -> Image:
-        if prob_map is None:
+    def toIMG(self,prob_map_hq=True) -> Image:
+        if prob_map_hq:
             prob_map = self.hq_prob_map
-
+        else:
+            prob_map = self.lq_prob_map
         img_arr = (
                 np.interp(np.array([[(f,f,f) for f in g] for g in prob_map]),[np.min(prob_map),np.max(prob_map)],[0,254]
                     )).astype(np.uint8)
@@ -39,7 +41,10 @@ class ProbabilityMap:
     def sum_along_path(self, path: Waypoints, radius:float=1) -> float:
         # Construct polygon
         pass
-    
+        
+    @property
+    def max(self) -> float:
+        return np.max(self.prob_map)
     @property
     def prob_map(self) -> list:
         return self.lq_prob_map
@@ -62,7 +67,7 @@ class ProbabilityMap:
             raise Exception("Invalid value for lq_shape")
     
     def lq_to_hq_coords(self,*args):
-        if len(args == 2):
+        if len(args) == 2:
             x, y = args
             return (
                 np.interp(x, (0,self.lq_shape[0]),(0,self.hq_shape[0])),
@@ -105,21 +110,27 @@ class ProbabilityMap:
         
         raise Exception()
 
-    def sum_in_polygon(self,polygon: Waypoints, radius: float = 0, is_path_closed: bool = False) -> float:
-        x,y = np.meshgrid(
-            np.arange(self.shape[0]),
-            np.arange(self.shape[1])
-        )
-        x,y = x.flatten(), y.flatten()
+    def sum_along_path(self,polygon: Waypoints, px_radius: float = 1, prob_map_hq=True, show: bool = False) -> float:
+        prob_map = self.hq_prob_map if prob_map_hq else self.lq_prob_map
+
+        x,y = np.meshgrid(np.arange(0,prob_map.shape[0]),np.arange(0,prob_map.shape[1]))
+        x,y = x.flatten(),y.flatten()
         points = np.vstack((x,y)).T
-        poly = polygon
-        p = Path(poly, closed=is_path_closed)
-        grid = p.contains_points(points, radius = radius) 
-        mask = grid.reshape(self.shape[0], self.shape[1])
+        
+        assert(isinstance(polygon, Waypoints))        
+        lines = polygon.toNumpyArray()
+        lines = np.append(lines,lines[::-1],0)
+        polygon = mpp.Path(lines)
+        grid = (polygon.contains_points(points,radius=px_radius)).reshape(prob_map.shape[0],prob_map.shape[1])
+        
+        if show:
+            plt.figure()
+            plt.imshow(prob_map*grid, cmap='hot', interpolation='nearest')
+            plt.xlim(0,prob_map.shape[0])
+            plt.ylim(0,prob_map.shape[1])
+            plt.show()
 
-        ret = self.prob_map*mask
-
-        return ProbabilityMap(ret)
+        return np.sum(prob_map*grid)
 
 
     def __getitem__(self, key):

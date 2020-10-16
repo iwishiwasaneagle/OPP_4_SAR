@@ -1,7 +1,11 @@
 from .base_wp_generator import BaseWPGenerator
 
-class ConstantSpeed(BaseWPGenerator):
-    pass
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import optimize as sco
+
+from src.data_models.probability_map import ProbabilityMap
+from src.data_models.positional.waypoint import Waypoint,Waypoints
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,45 +14,34 @@ from scipy import optimize as sco
 from src.data_models.probability_map import ProbabilityMap
 from src.data_models.positional.waypoint import Waypoint,Waypoints
 
-prob_map_img = "img/probability_imgs/prob_map_2.png"
-prob_map = ProbabilityMap.fromPNG(prob_map_img)
 
-wps = 4
-lower_1,lower_2 = 0,0
-upper_1,upper_2 = 50,50
+class ConstantSpeed(BaseWPGenerator):
+    def __init__(self, wp_count: int = 4, sweep_width: float = 2, **kwargs):
+        super().__init__(**kwargs)
 
-b = 25 # sweep width
+        self.wp_count = wp_count
+        self.sweep_width = sweep_width
 
-def cost_func(x:np.array) -> float:
-    x = np.reshape(x,(wps,2))
+
+    @staticmethod
+    def cost_func(x: np.array, prob_map: ProbabilityMap, sweep_width: float) -> float:
+        x = Waypoints(np.reshape(x,(len(x)//2,2)))
+
+        cost = prob_map.sum_along_path(x,sweep_width,show=True)
+
+        cost += np.sum(np.linalg.norm(x[1:]-x[:-1],axis=0))
+                
+        return cost
     
-    x_old = x[0]    
-    cost = 0
-    for x_cur in x[1:]:
-        
-        y = lambda i:  i*((x_cur[1]-x_old[1])/(x_cur[0]-x_old[0])) - x_old[0] + x_old[1]
-        
-        x_test = np.arange(x_old[0],x_cur[0])
-        y_test = y(x_test)
-        
-        x_test = set(np.round(x_test,0))
-        y_test = set(np.round(y_test,0))
-        
-        for i,j in zip(x_test,y_test):
-            cost += prob_map[i,j]
-            
-        x_old = x_cur
-            
-    return cost
-
-x0 = (np.random.random(wps*2)*max(upper_1,upper_2))
-print(x0)
-
-min_x = sco.minimize(cost_func,x0)
-
-waypoints = Waypoints()
-for i in range(0,wps*2,2):
-    waypoints.add(Waypoint(min_x.x[i],min_x.x[i+1]))
+    def generate(self):
+        r = 0.9*min(self.prob_map.shape[0],self.prob_map.shape[1])/2
+        x0 = [(r+r*np.cos(theta), r+r*np.sin(theta)) for theta in np.arange(0,2*np.pi,2*np.pi/self.wp_count)]
+        x0.append(x0[0])
+        x0_store = np.array(x0)
+        x0 = np.reshape(x0,np.shape(x0)[0]*np.shape(x0)[1])
     
+        res = sco.minimize(cost_func,x0,args=(self.prob_map, self.sweep_width),method='Nelder-Mead',options={'maxiter':10000000})
 
-print(waypoints)
+        min_x = np.reshape(res.x,(len(res.x)//2,2))
+
+        return Waypoints(min_x)

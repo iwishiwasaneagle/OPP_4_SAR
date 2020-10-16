@@ -37,10 +37,9 @@ class ConvolutionResult:
         else :         raise IndexError(f"{key} > 2")
 
 class LHC_GW_CONV(BaseWPGenerator):
-    def __init__(self, prob_map: ProbabilityMap, start: Waypoint, end:Waypoint = None, l:int=100, **kwargs):
+    def __init__(self, start: Waypoint, end:Waypoint = None, l:int=100, **kwargs):
         super().__init__(**kwargs)
 
-        self.prob_map = prob_map
         self.start = start
         self.end = end
         self.l = l
@@ -105,7 +104,7 @@ class LHC_GW_CONV(BaseWPGenerator):
                 best_wps = wps
                 best_l = l
 
-        print(f"l={l} had {100*best_prob/float(self.prob_map.sum):.2f}% efficiency with {len(wps)} waypoints")
+        print(f"l={l} had {100*best_prob:.2f}% efficiency with {len(wps)} waypoints")
         return best_wps
 
     def LHC_CONV(self,l=0, ret_dict: dict={}) -> Waypoints:

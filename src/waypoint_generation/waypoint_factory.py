@@ -36,9 +36,13 @@ class WaypointFactory:
         
         if self.alg == WaypointAlgorithmEnum.LHC_GW_CONV_E:
             from src.waypoint_generation.LHC_GW_CONV import LHC_GW_CONV
-            return LHC_GW_CONV(self.start, self.end, 40, **kwargs).waypoints
+            return LHC_GW_CONV(self.start, self.end, 10, **kwargs).waypoints
            
         elif self.alg == WaypointAlgorithmEnum.MODIFIED_LAWNMOWER:
             from src.waypoint_generation.modified_lawnmower import ModifiedLawnmower
             return ModifiedLawnmower(max_iter=1e8,**kwargs).waypoints
+
+        elif self.alg == WaypointAlgorithmEnum.CONSTANT_SPEED:
+            from src.waypoint_generation.constant_speed import ConstantSpeed
+            return ConstantSpeed(**kwargs).generate()
 

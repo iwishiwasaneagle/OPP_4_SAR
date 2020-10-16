@@ -7,9 +7,8 @@ from src.data_models.positional.waypoint import Waypoints
 
 class BaseWPGenerator(ABC):
     def __init__(self, prob_map: ProbabilityMap = None, threaded: bool = True, animate: bool = False):
-        if prob_map is None: raise TypeError(f"prob_map can't be type {type(prob_map)}. {ProbabilityMap} expected")
-
-
+        if not isinstance(prob_map,ProbabilityMap): raise TypeError(f"prob_map can't be type {type(prob_map)}. {ProbabilityMap} expected")
+        
         self.threaded = threaded
         self.animate = not self.threaded and animate
         self.prob_map = prob_map 
