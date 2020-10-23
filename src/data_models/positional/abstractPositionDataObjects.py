@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 import numbers
+import numpy as np
 
 class AbstractPoseDataObject(ABC):
     def __init__(self, *args):
         a,b=None,None
         if len(args) >= 3:
             raise Exception(f"Too many input arguments. 3 expected, received {len(args)}")
-        elif len(args) == 2 and all([isinstance(f,numbers.Real) for f in args]):
+        elif len(args) == 2 and all([isinstance(f,(numbers.Real,np.ndarray)) for f in args]):
             a,b = args
         elif len(args) == 1 and isinstance(args[0],(tuple, list)):
             a,b = args[0]
@@ -14,7 +15,7 @@ class AbstractPoseDataObject(ABC):
             a,b,=0,0
         if None in (a,b): raise Exception()
         self._a = a
-        self._b = b        
+        self._b = b
     def __str__(self):
         return f"{type(self)}:({self._a},{self._b})"
     

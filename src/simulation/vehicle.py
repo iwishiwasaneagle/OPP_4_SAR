@@ -78,9 +78,7 @@ class Vehicle:
         plt.cla()
 
         self._ax.add_artist(plt.Circle((self.pos.x, self.pos.y), size, color='r'))
-        self._ax.plot(self.data['pos']['x'], self.data['pos']['y'], 'b:')
-
-        
+        self._ax.plot(self.data['pos']['x'], self.data['pos']['y'], 'b:')       
 
         plt.xlim(self.pos.x-10,self.pos.x+10)
         plt.ylim(self.pos.y-10,self.pos.y+10)

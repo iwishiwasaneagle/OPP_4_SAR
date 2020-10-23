@@ -4,6 +4,7 @@ from src.data_models.positional.pose import Pose
 from src.data_models.abstractListObject import AbstractListObject
 
 from typing import List, TypeVar, Tuple
+import json
 
 
 T = TypeVar('T', bound='Trajectories')
@@ -11,6 +12,22 @@ U = TypeVar('U', bound='Trajectory')
 class Trajectories(AbstractListObject):
     def __init__(self, trajs:List[U] = []):
         super().__init__(trajs)
+
+    def toFile(self, fid):
+        data = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True)
+        json.dump(data,fid)
+
+    @staticmethod
+    def fromFile(fid):
+        data = json.load(fid)
+        items = []
+        for item in data[items]:
+            tmpTraj = Trajectory()
+            tmpTraj.__dict__ = item
+            items.append(tmpTraj)
+        return Waypoints(items)
+
+
     
     
 class Trajectory:
@@ -75,7 +92,10 @@ class Trajectory:
 
     def acceleration(self, t: float) -> Pose:
         calc = lambda c,t: 20 * c[0] * t**3 + 12 * c[1] * t**2 + 6 * c[2] * t + 2 * c[3]
-        return Pose(calc(self.coeffs['x'], t), calc(self.coeffs['y'], t))
+        xdd = calc(self.coeffs['x'],t)
+        ydd = calc(self.coeffs['y'],t)
+        ret = Pose(xdd, ydd)
+        return ret 
 
     def velocity(self, t: float) -> Pose:
         calc = lambda c,t: 5 * c[0] * t**4 + 4 * c[1] * t**3 + 3 * c[2] * t**2 + 2 * c[3] * t + c[4]

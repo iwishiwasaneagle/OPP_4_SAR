@@ -1,8 +1,9 @@
 from typing import TypeVar, List
 import numpy as np
+from abc import ABC, abstractmethod
 T = TypeVar('T',bound='AbstractListObject')
 
-class AbstractListObject:
+class AbstractListObject(ABC):
     def __init__(self,*args) -> None:
         if len(args) == 1 and isinstance(args[0],(tuple, list)):
             args = args[0]   
@@ -37,4 +38,13 @@ class AbstractListObject:
 
     def toNumpyArray(self):
         return np.array(self.items)
+
+    @abstractmethod
+    def toFile(self, fid):
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def fromFile(fid):
+        raise NotImplementedError()
 

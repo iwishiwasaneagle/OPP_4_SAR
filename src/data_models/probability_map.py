@@ -81,7 +81,7 @@ class ProbabilityMap:
                 x,y = self.lq_to_hq_coords(arg.x,arg.y)
                 return Waypoint(x,y)
             elif isinstance(arg,Waypoints):
-                return Waypoints([self.lq_to_hq_coords(f.x, f.y) for f in arg])
+                return Waypoints([Waypoint(self.lq_to_hq_coords(f.x, f.y)) for f in arg])
     
         elif all([len(f) == 2 and isinstance(f, (tuple, list, Waypoint)) for f in args]):
             return [self.lq_to_hq_coords(f) for f in args]
@@ -89,7 +89,7 @@ class ProbabilityMap:
         raise Exception()
     
     def hq_to_lq_coords(self,*args):
-        if len(args == 2):
+        if len(args) == 2:
             x, y = args
             return (
                 np.interp(x, (0,self.hq_shape[0]),(0,self.lq_shape[0])),
@@ -97,18 +97,18 @@ class ProbabilityMap:
                     )
         elif len(args) == 1:
             arg = args[0]
-            if isinstance(arg,(tuple,list)) and len(arg) == 2:
+            if isinstance(arg,(tuple,list,np.ndarray)) and len(arg) == 2:
                 return self.lq_to_hq_coords(arg[0],arg[1])
             elif isinstance(arg,Waypoint):
                 x,y = self.lq_to_hq_coords(arg.x,arg.y)
                 return Waypoint(x,y)
             elif isinstance(arg,Waypoints):
-                return Waypoints([self.lq_to_hq_coords(f.x, f.y) for f in arg])
+                return Waypoints([Waypoint(self.lq_to_hq_coords(f.x, f.y)) for f in arg])
     
         elif all([len(f) == 2 and isinstance(f, (tuple, list, Waypoint)) for f in args]):
             return [self.lq_to_hq_coords(f) for f in args]
         
-        raise Exception()
+        raise Exception(args)
 
     def sum_along_path(self,polygon: Waypoints, px_radius: float = 1, prob_map_hq=True, show: bool = False) -> float:
         prob_map = self.hq_prob_map if prob_map_hq else self.lq_prob_map
@@ -117,9 +117,11 @@ class ProbabilityMap:
         x,y = x.flatten(),y.flatten()
         points = np.vstack((x,y)).T
         
-        assert(isinstance(polygon, Waypoints))        
-        lines = polygon.toNumpyArray()
+        assert(isinstance(polygon, (Waypoints,np.ndarray)))
+        if isinstance(polygon,Waypoints): lines = polygon.toNumpyArray()
+        else: lines = polygon
         lines = np.append(lines,lines[::-1],0)
+
         polygon = mpp.Path(lines)
         grid = (polygon.contains_points(points,radius=px_radius)).reshape(prob_map.shape[0],prob_map.shape[1])
         
