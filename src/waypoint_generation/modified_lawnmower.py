@@ -25,13 +25,13 @@ class ModifiedLawnmower(BaseWPGenerator):
 
         N_tv = sum(N_vs)
 
-        N_perms = np.math.factorial(N_tv)
+        N_perms = np.math.factorial(N_tv-1)
         arr_to_perm = []
         for i,visits in enumerate(N_vs):
             [arr_to_perm.append(i+1) for n in range(int(visits))]
+        arr_to_perm.pop(0) # Remove start lane 
 
         perm_iter = itertools.permutations(np.random.permutation(arr_to_perm))
-
 
         cost_opt = np.inf
         p_opt = None
@@ -40,11 +40,16 @@ class ModifiedLawnmower(BaseWPGenerator):
 
         test_perm_func = self.__test_permutation
         max_iter = self.max_iter
-        for perm in perm_iter:
+
+        while True:
+            perm = list(next(perm_iter))
+            perm.insert(0,1)
+
             cost = test_perm_func(C_turn, perm)
 
             if cost<cost_opt:
                 string = f"{100*float(c)/N_perms:.2f}% after {time.time()-t0:.1f}s and {c} iterations | New best: p_opt={p_opt} with cost={cost_opt}"
+                print(int(len(string)*1.3)*' ',end='\r')
                 print(string)
                 cost_opt = cost
                 p_opt = perm
@@ -54,6 +59,9 @@ class ModifiedLawnmower(BaseWPGenerator):
                 string = f"{100*float(c)/(N_perms if N_perms<max_iter else max_iter):.2f}% after {time.time()-t0:.1f}s and {c}/{N_perms if N_perms<max_iter else max_iter} iterations | p_cur={perm} with cost={cost}"
                 print(" "*len(string),end='\r')
                 print(string,end='\r')
+
+            if c%10000==0:
+                perm_iter = itertools.permutations(np.random.permutation(arr_to_perm))
 
             if c >= max_iter: 
                 break
@@ -112,16 +120,17 @@ class ModifiedLawnmower(BaseWPGenerator):
 
 
     def __normalize_columns_in_pm(self) -> ProbabilityMap:
-        # Map from 0->254 to 0->2
-        self.prob_map.prob_map = np.interp(self.prob_map.prob_map,(0,254),(0,2))
+        # Map from 0->1 to 0->3
+        prob_map = np.interp(self.prob_map.prob_map,(0,np.max(self.prob_map.prob_map)),(0,3))
 
         # Iterate over columns
-        for i in range(self.prob_map.shape[0]):
-            self.prob_map.prob_map[:,i] = np.mean(self.prob_map.prob_map[:,i])
+        for i in range(prob_map.shape[0]):
+            prob_map[:,i] = np.mean(prob_map[:,i])
 
         # Round to int
-        self.prob_map.prob_map = np.round(self.prob_map.prob_map)
+        prob_map = np.round(prob_map)
 
+        self.prob_map = prob_map
         return self
 
     def __calc_revisit(self) -> list:
@@ -145,7 +154,7 @@ class ModifiedLawnmower(BaseWPGenerator):
             N_vs_A = max(UL,UR1-UR2)
 
             # 4. Update the right lane uncertainty that is reduced by Nvs(A)
-            self.prob_map.prob_map[i,:] -= 1
+            self.prob_map[i,:] -= 1
 
             # 5. Goto step 3 until path A is the last path (right border of the area).
             

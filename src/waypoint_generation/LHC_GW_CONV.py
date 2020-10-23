@@ -109,7 +109,7 @@ class LHC_GW_CONV(BaseWPGenerator):
 
     def LHC_CONV(self,l=0, ret_dict: dict={}) -> Waypoints:
         print(f"({l})\tStarting LHC_CONV with l={l}")
-        wps = []
+        wps = [self.start]
         accumulator = 0
         visited = []
 
@@ -173,12 +173,14 @@ class LHC_GW_CONV(BaseWPGenerator):
             cur = wps[-1]
             visited.append(best)
            
-        print(f"({l})\tCompleted in {time.time()-t:.3f}s with local score {accumulator:.1f} and {conflicts} conflicts")
+        print(f"({l})\tCompleted in {time.time()-t:.3f}s with local score {accumulator:.4f} and {conflicts} conflicts")
+
+        wps = Waypoints([Waypoint(f.x+0.5, f.y+0.5) for f in wps]) # Bring the coord into the center of the square
 
         if self.threaded:
-            ret_dict[l] = Waypoints(wps)
+            ret_dict[l] = wps
         else: 
-            return Waypoints(wps)
+            return wps
 
     def convolute(self, pos: Waypoint, visited: Waypoints, prob_map: ProbabilityMap, conv_type: ConvolutionType):
         kernel = None
@@ -221,7 +223,7 @@ class LHC_GW_CONV(BaseWPGenerator):
     
     def neighbours(self, pos: Waypoint, visited: Waypoints, prob_map: ProbabilityMap):
         neighbours = self.surrounding_grid(pos)
-        return [(f, prob_map[f]) for f in neighbours if min(f) >= 0 and f.x < prob_map.shape[0] and f.y < prob_map.shape[1] if f not in visited]
+        return [(f, prob_map[f]) for f in neighbours if min(f) >= 0 and f.x <= prob_map.shape[0]-0.5 and f.y <= prob_map.shape[1]-0.5 if f not in visited]
 
     def calc_prob(self,wps: Waypoints) -> float:
         accumulator = 0
