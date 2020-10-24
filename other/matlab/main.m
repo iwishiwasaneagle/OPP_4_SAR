@@ -23,9 +23,9 @@ options_fine = optimoptions('fmincon','Display','notify', 'PlotFcn', {@optimplot
 tic
 [x,end_cost_1,~,~] = fmincon(@cost_func,x0,[],[],[],[],lb,ub,[],options_rough);
 toc
-tic
-[x,end_cost_2,exitflag,output] = fmincon(@cost_func,x,[],[],[],[],lb,ub,[],options_fine);
-toc
+% tic
+% [x,end_cost_2,exitflag,output] = fmincon(@cost_func,x,[],[],[],[],lb,ub,[],options_fine);
+% toc
 
 % lb = ones(wps*2,1)*lower;
 % ub = ones(wps*2,1)*upper; 
