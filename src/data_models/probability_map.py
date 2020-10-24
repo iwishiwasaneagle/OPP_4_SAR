@@ -38,10 +38,6 @@ class ProbabilityMap:
         img = Image.fromarray(img_arr)
         return img 
 
-    def sum_along_path(self, path: Waypoints, radius:float=1) -> float:
-        # Construct polygon
-        pass
-        
     @property
     def max(self) -> float:
         return np.max(self.prob_map)
@@ -124,16 +120,19 @@ class ProbabilityMap:
 
         polygon = mpp.Path(lines)
         grid = (polygon.contains_points(points,radius=px_radius)).reshape(prob_map.shape[0],prob_map.shape[1])
-        
+
+        cost = np.sum(prob_map*grid)
+
+
         if show:
+            print(f"cost = {cost:.5f}")
             plt.figure()
             plt.imshow(prob_map*grid, cmap='hot', interpolation='nearest')
             plt.xlim(0,prob_map.shape[0])
             plt.ylim(0,prob_map.shape[1])
             plt.show()
 
-        return np.sum(prob_map*grid)
-
+        return cost 
 
     def __getitem__(self, key):
         if isinstance(key, int):

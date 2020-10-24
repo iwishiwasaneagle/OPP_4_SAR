@@ -27,9 +27,12 @@ class ConstantSpeed(BaseWPGenerator):
     def cost_func(x: np.array, prob_map: ProbabilityMap, sweep_width: float) -> float:
         x = np.reshape(x,(len(x)//2,2))
 
-        cost = prob_map.sum_along_path(x,sweep_width,show=False)
+        cost = -1* prob_map.sum_along_path(x,sweep_width,show=False)
 
-        cost += np.sum(np.linalg.norm(x[1:]-x[:-1],axis=0))
+        cost += 0.1*np.sum(np.linalg.norm(x[1:]-x[:-1],axis=0))
+
+        if np.min(x)<0:
+            cost += np.power(np.min(x),4) * 10
                 
         return cost
     
@@ -40,9 +43,10 @@ class ConstantSpeed(BaseWPGenerator):
         x0.append(x0[0])
         x0_store = np.array(x0)
         x0 = np.reshape(x0,np.shape(x0)[0]*np.shape(x0)[1])
-    
+
         res = sco.minimize(self.cost_func,x0,args=(self.prob_map, self.sweep_width),method='Nelder-Mead',options={'maxiter':10000000})
 
         min_x = np.reshape(res.x,(len(res.x)//2,2))
-        min_x = [Waypoint(g[0],g[1]) for g in [self.prob_map.hq_to_lq_coords(f) for f in min_x]]
+        tmp = [self.prob_map.hq_to_lq_coords(f) for f in min_x]
+        min_x = [Waypoint(g[0],g[1]) for g in tmp]
         return Waypoints(min_x)

@@ -11,7 +11,7 @@ class ParallelSwaths(BaseWPGenerator):
         wps = Waypoints([Waypoint.zero()])
         lower_y,upper_y = (1,self.prob_map.lq_shape[1]-1)
 
-        rows = np.arange(1,self.prob_map.lq_shape[0]-1)
+        rows = np.arange(1,self.prob_map.lq_shape[0])
         at_bottom = True
         for r in rows:
             if at_bottom:
