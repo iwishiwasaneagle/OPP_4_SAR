@@ -21,19 +21,18 @@ if __name__ == "__main__":
 
     dict_ = {}    
     fname = 'algorithms_output.json'
-    # if os.path.isfile(fname):
-    #     with open(fname, 'r') as f:
-    #         dict_ = json.loads(json.load(f))
+    if os.path.isfile(fname):
+        with open(fname, 'r') as f:
+            dict_ = json.loads(json.load(f))
 
     dict_['img'] = prob_map.lq_prob_map.tolist()
 
-    for alg in [WaypointAlgorithmEnum.CONSTANT_SPEED,WaypointAlgorithmEnum.PARALLEL_SWATHS ,WaypointAlgorithmEnum.LHC_GW_CONV_E]:#, WaypointAlgorithmEnum.MODIFIED_LAWNMOWER]:
+    for alg in [WaypointAlgorithmEnum.CONSTANT_SPEED,WaypointAlgorithmEnum.PARALLEL_SWATHS ,WaypointAlgorithmEnum.LHC_GW_CONV_E, WaypointAlgorithmEnum.MODIFIED_LAWNMOWER]:
 
         
         t = time.time()
 
         waypoints = WaypointFactory(alg, prob_map, Waypoint(0,0),threaded=True,animate=False).generate()
-        # waypoints = prob_map.lq_to_hq_coords(waypoints)
 
         # sim = sim.simulation(waypoints, animate=False)
         # vehicle = sim.run()
