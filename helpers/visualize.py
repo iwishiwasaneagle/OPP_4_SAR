@@ -3,7 +3,7 @@ import csv
 from datetime import datetime
 import sys
 
-FILE="helper/stats.csv"
+FILE="helpers/stats.csv"
 
 time = []
 files = []
@@ -31,7 +31,7 @@ ax[1].set_ylabel("Files")
 fig.autofmt_xdate()
 
 if "save" in sys.argv:
-    plt.savefig("helper/stats.png")
+    plt.savefig("helpers/stats.png")
 
 if "show" in sys.argv:
     plt.show()
