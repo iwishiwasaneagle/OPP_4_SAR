@@ -12,8 +12,8 @@ function c = cost_func(x_inp)
         c = c - lc;
                 
         % Penalize distance
-        dist = vecnorm(x_inp-x2,2,2);
-        c = c + double(sum(80*heaviside(5-dist)));
+%         dist = vecnorm(x_inp-x2,2,2);
+%         c = c + double(sum(80*heaviside(5-dist)));
         
         % Penalize crossings
 %         [xi,yi] = polyxpoly([x1(1) x2(1)],[x1(2) x2(2)] ,x_inp(:,1),x_inp(:,2));        

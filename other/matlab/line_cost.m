@@ -9,7 +9,7 @@ function [cost, updated_prob_map] = line_cost(x1,x2,prob_map,r)
     local_prob_map = prob_map;
     for i = 1:length(x)
         [c,local_prob_map,~] = position_cost([x(i),y(i)],r,local_prob_map);
-        cost = cost + c;
+        cost = cost - c;
     end
     
     updated_prob_map = local_prob_map;
