@@ -12,7 +12,7 @@ lines = []
 with open(FILE,'r') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
-        dt_obj = datetime.strptime(row['date'],"%a %d %b %H:%M:%S BST %Y")
+        dt_obj = datetime.strptime(row['date'],"%a %d %b %H:%M:%S %Z %Y")
         time.append(dt_obj)
         files.append(int(row['files']))
         lines.append(int(row['code']))
