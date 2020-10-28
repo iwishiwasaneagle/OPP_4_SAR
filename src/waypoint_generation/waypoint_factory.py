@@ -8,7 +8,7 @@ class WaypointAlgorithmEnum(IntEnum):
     LHC_GW_CONV_E = auto()
     PARALLEL_SWATHS = auto()
     MODIFIED_LAWNMOWER  = auto()
-    CONSTANT_SPEED = auto()
+    PABO = auto()
     # NONE = auto()
 
 
@@ -70,6 +70,6 @@ class WaypointFactory:
             return ParallelSwaths(**kwargs).waypoints
 
         elif self.alg == WaypointAlgorithmEnum.CONSTANT_SPEED:
-            from src.waypoint_generation.constant_speed import ConstantSpeed
-            return ConstantSpeed(**kwargs).waypoints
+            from src.waypoint_generation.pabo import PABO
+            return PABO(**kwargs).waypoints
 

@@ -15,7 +15,7 @@ from src.data_models.probability_map import ProbabilityMap
 from src.data_models.positional.waypoint import Waypoint,Waypoints
 
 
-class ConstantSpeed(BaseWPGenerator):
+class PABO(BaseWPGenerator):
     def __init__(self, wp_count: int = 4, sweep_width: float = 2, **kwargs):
         super().__init__(**kwargs)
 
