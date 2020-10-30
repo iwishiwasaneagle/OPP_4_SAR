@@ -5,7 +5,7 @@ from typing import TypeVar
 T = TypeVar("T", bound="WaypointFactory")
 @unique
 class WaypointAlgorithmEnum(IntEnum):
-    LHC_GW_CONV_E = auto()
+    LHC_GW_CONV = auto()
     PARALLEL_SWATHS = auto()
     MODIFIED_LAWNMOWER  = auto()
     PABO = auto()
@@ -37,6 +37,7 @@ class WaypointAlgorithmEnum(IntEnum):
 
 class WaypointFactory:
     def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, start:Waypoint=Waypoint(0,0), threaded: bool=True, animate: bool = False):
+        
         self.alg = alg
 
         assert(min(start)>=0 and start.x <= prob_map.shape[0] and start.y <= prob_map.shape[1])
@@ -57,7 +58,7 @@ class WaypointFactory:
     def generate(self) -> Waypoints:
         kwargs = {'prob_map':self.prob_map,'threaded':self.threaded,'animate':self.animate}
         
-        if self.alg == WaypointAlgorithmEnum.LHC_GW_CONV_E:
+        if self.alg == WaypointAlgorithmEnum.LHC_GW_CONV:
             from src.waypoint_generation.LHC_GW_CONV import LHC_GW_CONV
             return LHC_GW_CONV(self.start, self.end, 40, **kwargs).waypoints
            
@@ -69,7 +70,7 @@ class WaypointFactory:
             from src.waypoint_generation.parallel_swaths import ParallelSwaths
             return ParallelSwaths(**kwargs).waypoints
 
-        elif self.alg == WaypointAlgorithmEnum.CONSTANT_SPEED:
+        elif self.alg == WaypointAlgorithmEnum.PABO:
             from src.waypoint_generation.pabo import PABO
             return PABO(**kwargs).waypoints
 

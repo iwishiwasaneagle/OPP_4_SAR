@@ -1,4 +1,4 @@
-function [x] = pabo(inp_prob_map, start, optim_alg, wps)
+function [x] = pabo(inp_prob_map, optim_alg, wps)
 
 rng default
 global prob_map radius unit_endurance unit_endurance_miss_const prob_accum_const 
@@ -25,7 +25,7 @@ if optim_alg == "fmincon"
 elseif optim_alg == "ga"
     lb = ones(wps*2,1)*lower;
     ub = ones(wps*2,1)*upper; 
-    options = optimoptions('ga','PlotFcn',{@gaplotbestf},'UseVectorized', false,'UseParallel', false);
+    options = optimoptions(@ga,'PlotFcn',{@gaplotbestf},'UseVectorized', false,'UseParallel', false);
     [x,end_cost,exitflag,output] = ga(@cost_func_ga,wps*2,[],[],[],[],lb,ub,[],options);
     x = reshape(x,[wps,2]);
 else

@@ -42,7 +42,11 @@ class ModifiedLawnmower(BaseWPGenerator):
         max_iter = self.max_iter
 
         while True:
-            perm = list(next(perm_iter))
+            try:
+                perm = list(next(perm_iter))
+            except StopIteration:
+                break
+
             perm.insert(0,1)
 
             cost = test_perm_func(C_turn, perm)
