@@ -11,13 +11,16 @@ import os
 
 from src.data_models.probability_map import ProbabilityMap
 from src.waypoint_generation.waypoint_factory import WaypointFactory, WaypointAlgorithmEnum
+from src.waypoint_generation import CostFunc
 
 prob_map_img = "img/probability_imgs/prob_map_3_multimodal.png"
 
 
 if __name__ == "__main__":
     prob_map = ProbabilityMap.fromPNG(prob_map_img)
-    prob_map.lq_shape = (15,15)
+    prob_map.lq_shape = (12,12)
+    
+    cost_fnc = CostFunc()
 
     dict_ = {}    
     fname = 'algorithms_output.json'
@@ -27,8 +30,7 @@ if __name__ == "__main__":
 
     dict_['img'] = prob_map.lq_prob_map.tolist()
 
-    for alg in [WaypointAlgorithmEnum.CONSTANT_SPEED,WaypointAlgorithmEnum.PARALLEL_SWATHS ,WaypointAlgorithmEnum.LHC_GW_CONV_E, WaypointAlgorithmEnum.MODIFIED_LAWNMOWER]:
-
+    for alg in [WaypointAlgorithmEnum.PABO,WaypointAlgorithmEnum.PARALLEL_SWATHS ,WaypointAlgorithmEnum.LHC_GW_CONV, WaypointAlgorithmEnum.MODIFIED_LAWNMOWER]:
         
         t = time.time()
 
@@ -39,6 +41,7 @@ if __name__ == "__main__":
         
         alg_dict = {}
         alg_dict["wps"] = [(float(f.x),float(f.y)) for f in waypoints]
+        alg_dict["cost"] = cost_fnc.calculate(waypoints, prob_map)
         alg_dict["time"] = time.time()-t
 
         dict_[str(alg)] = alg_dict
