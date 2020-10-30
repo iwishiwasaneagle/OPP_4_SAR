@@ -1,14 +1,14 @@
 from .base_wp_generator import BaseWPGenerator
 from src.data_models.probability_map import ProbabilityMap
 from src.data_models.positional.waypoint import Waypoint, Waypoints
+from src.waypoint_generation.waypoint_factory import WaypointAlgSettings
 import numpy as np
 import itertools
 import time
 
 class ModifiedLawnmower(BaseWPGenerator):
-    def __init__(self, turn_radius:int=2, max_iter: int=np.iinfo(np.int32).max, **kwargs):
-        self.turn_radius = turn_radius
-        self.max_iter = max_iter
+    def __init__(self, **kwargs):
+        self.settings = WaypointAlgSettings.ModifiedLawnmower()
 
         super().__init__(**kwargs)
         
@@ -19,8 +19,8 @@ class ModifiedLawnmower(BaseWPGenerator):
     def waypoints(self) -> Waypoints:
         N_vs = self.__calc_revisit()
 
-        C_turn = np.square(np.arange(-self.turn_radius+1,self.prob_map.shape[0]))
-        for i in range(self.turn_radius):
+        C_turn = np.square(np.arange(-self.settings.turn_radius+1,self.prob_map.shape[0]))
+        for i in range(self.settings.turn_radius):
             C_turn[i] = np.iinfo(np.int16).max
 
         N_tv = sum(N_vs)
@@ -39,7 +39,7 @@ class ModifiedLawnmower(BaseWPGenerator):
         t0 = time.time()
 
         test_perm_func = self.__test_permutation
-        max_iter = self.max_iter
+        max_iter = self.settings.max_iter
 
         while True:
             try:

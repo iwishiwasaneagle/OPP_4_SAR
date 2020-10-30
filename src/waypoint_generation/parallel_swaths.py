@@ -1,14 +1,16 @@
 from .base_wp_generator import BaseWPGenerator
 from src.data_models.positional.waypoint import Waypoint, Waypoints
+from src.waypoint_generation.waypoint_factory import WaypointAlgSettings
 import numpy as np
 
 class ParallelSwaths(BaseWPGenerator):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.settings = WaypointAlgSettings.ParallelSwaths()
 
     @property
     def waypoints(self) -> Waypoints:
-        wps = Waypoints([Waypoint.zero()])
+        wps = Waypoints([self.settings.start()])
         lower_y,upper_y = (1,self.prob_map.lq_shape[1]-1)
 
         rows = np.arange(1,self.prob_map.lq_shape[0])

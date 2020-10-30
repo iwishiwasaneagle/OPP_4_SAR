@@ -12,6 +12,7 @@ import json
 from src.data_models.probability_map import ProbabilityMap
 from src.data_models.positional.waypoint import Waypoint,Waypoints
 from src.matlab_helper import MatlabHelper
+from src.waypoint_generation.waypoint_factory import WaypointAlgSettings
 
 class PABOSolverEnum(Enum):
     FMINCON=auto()
@@ -19,47 +20,40 @@ class PABOSolverEnum(Enum):
     PARTICLESWARM=auto()
 
 class PABO(BaseWPGenerator):
-    def __init__(self, solver: PABOSolverEnum = PABOSolverEnum.PARTICLESWARM, **kwargs):
+    def __init__(self,**kwargs):
         super().__init__(**kwargs)
-
-
-        self.solver = solver
 
         print("Starting matlab engine...")
         self.mat_eng = MatlabHelper.instance()
-
         path = os.path.join(os.getcwd(),'src', 'waypoint_generation')
-
         self.mat_eng.eng.addpath(os.path.join(path,'pabo'))
         print(f"Matlab engine started as {self.mat_eng}")
         
-        with open(os.path.join(path,'global.settings'),'r') as f:
-            self.settings = json.load(f)
-        with open(os.path.join(path,'pabo','pabo.settings'), 'r') as f:
-            self.settings.update(json.load(f))
+        self.settings = WaypointAlgSettings.PABO()
         
         mdouble_prob_map = mdouble(self.prob_map.lq_prob_map.tolist())
         self.mat_eng.eng.set_globs(
             mdouble_prob_map,
             mdouble([self.sweep_radius]),
-            mdouble([self.settings['unit_endurance']]),
-            mdouble([self.settings['unit_endurance_miss_const']]),  
-            mdouble([self.settings['prob_accum_const']]), 
+            mdouble([self.settings.unit_endurance]),
+            mdouble([self.settings.unit_endurance_miss_const]),  
+            mdouble([self.settings.prob_accum_const]), 
             mbool([False])
             )
         
-        self.wp_count = self.settings['wp_count']
+        self.wp_count = self.settings.wp_count
+        self.solver = PABOSolverEnum[self.settings.solver]
 
     @property
     def sweep_radius(self) -> float:
-        return self.settings['radius']
+        return self.settings.radius
     
     @property
     def waypoints(self) -> Waypoints:
         mdouble_wp_count = mdouble([self.wp_count])
-        alg_inp = str(self.solver).split(".")[1].lower()
+        solver_str = str(self.solver).split(".")[1].lower()
        
-        x = self.mat_eng.eng.pabo(alg_inp,mdouble_wp_count)
+        x = self.mat_eng.eng.pabo(solver_str,mdouble_wp_count)
          
         return Waypoints([list(f) for f in x])
 

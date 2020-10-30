@@ -2,6 +2,8 @@ from enum import IntEnum, unique, auto
 from src.data_models.positional.waypoint import Waypoints, Waypoint
 from src.data_models.probability_map import ProbabilityMap
 from typing import TypeVar
+import os
+import json
 T = TypeVar("T", bound="WaypointFactory")
 @unique
 class WaypointAlgorithmEnum(IntEnum):
@@ -9,31 +11,32 @@ class WaypointAlgorithmEnum(IntEnum):
     PARALLEL_SWATHS = auto()
     MODIFIED_LAWNMOWER  = auto()
     PABO = auto()
-    # NONE = auto()
 
 
-# class WaypointFactoryOptions:
-#     def __init__(self, **kwargs):
-#         keys = kwargs.keys()
-#         self.alg = kwargs['alg'] if 'alg' in keys else WaypointAlgorithmEnum.NONE
-#         self.prob_map = kwargs['prob_map'] if 'prob_map' in keys else ProbabilityMap([])
-#         self.start = kwargs['start'] if 'start' in keys else Waypoint(0,0)
-#         self.threaded = kwargs['threaded'] if 'threaded' in keys else False
-#         self.animate = kwargs['animate'] if 'animate' in keys else False
 
-
-#     def validate(self) -> bool:
-#         valid = []
-#         valid.append(isinstance(self.threaded, bool))
-#         valid.append(isinstance(self.animate, bool))
-#         valid.append(isinstance(self.start, Waypoint))
-#         valid.append(len(self.prob_map)  > 5 )
-#         valid.append(isinstance(self.alg, WaypointAlgorithmEnum) and self.alg is not WaypointAlgorithmEnum.NONE)
-
-#         return all(valid)
-
-
-    
+class WaypointAlgSettings:
+    class _BaseSetting:
+        def __init__(self,rel_f_path):
+            with open(os.path.join(*[os.getcwd()]+["src","waypoint_generation"]+rel_f_path),'r') as f:
+                data = json.load(f)
+            self.__dict__.update(data)
+    class Global(_BaseSetting):
+        def __init__(self, rel_f_path:list=None):
+            super().__init__(["global.settings"])
+            if rel_f_path is not None:
+                super().__init__(rel_f_path)
+    class PABO(Global):
+        def __init__(self):
+            super().__init__(["pabo","pabo.settings"])
+    class ParallelSwaths(Global):
+        def __init__(self):
+            super().__init__(["parallel_swaths.settings"])
+    class ModifiedLawnmower(Global):
+        def __init__(self):
+            super().__init__(["modified_lawnmower.settings"])    
+    class LHC_GW_CONV(Global):
+        def __init__(self):
+            super().__init__(["LHC_GW_CONV.settings"])   
 
 class WaypointFactory:
     def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, start:Waypoint=Waypoint(0,0), threaded: bool=True, animate: bool = False):
@@ -56,15 +59,15 @@ class WaypointFactory:
         return self
 
     def generate(self) -> Waypoints:
-        kwargs = {'prob_map':self.prob_map,'threaded':self.threaded,'animate':self.animate}
+        kwargs = {'prob_map':self.prob_map,'threaded':self.threaded}
         
         if self.alg == WaypointAlgorithmEnum.LHC_GW_CONV:
             from src.waypoint_generation.LHC_GW_CONV import LHC_GW_CONV
-            return LHC_GW_CONV(self.start, self.end, 40, **kwargs).waypoints
+            return LHC_GW_CONV(**kwargs).waypoints
            
         elif self.alg == WaypointAlgorithmEnum.MODIFIED_LAWNMOWER:
             from src.waypoint_generation.modified_lawnmower import ModifiedLawnmower
-            return ModifiedLawnmower(max_iter=5e7,**kwargs).waypoints
+            return ModifiedLawnmower(**kwargs).waypoints
 
         elif self.alg == WaypointAlgorithmEnum.PARALLEL_SWATHS:
             from src.waypoint_generation.parallel_swaths import ParallelSwaths

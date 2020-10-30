@@ -3,14 +3,16 @@ from src.data_models.probability_map import ProbabilityMap
 import numpy as np
 import matplotlib.pyplot as plt
 from src.data_models.positional.waypoint import Waypoints
+from src.waypoint_generation.waypoint_factory import WaypointAlgSettings
 
 
 class BaseWPGenerator(ABC):
-    def __init__(self, prob_map: ProbabilityMap = None, threaded: bool = True, animate: bool = False):
+    def __init__(self, prob_map: ProbabilityMap = None, threaded: bool = True):
         if not isinstance(prob_map,ProbabilityMap): raise TypeError(f"prob_map can't be type {type(prob_map)}. {ProbabilityMap} expected")
         
+        self.settings =  WaypointAlgSettings.Global()
         self.threaded = threaded
-        self.animate = not self.threaded and animate
+        self.animate = not self.threaded and self.settings.animate
         self.prob_map = prob_map 
         
         if self.animate:

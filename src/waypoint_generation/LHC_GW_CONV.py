@@ -1,6 +1,7 @@
 from src.waypoint_generation.base_wp_generator import BaseWPGenerator
 from src.data_models.probability_map import ProbabilityMap
 from src.data_models.positional.waypoint import Waypoint,Waypoints
+from src.waypoint_generation.waypoint_factory import WaypointAlgSettings
 from src.simulation.parameters import *
 
 import matplotlib.pyplot as plt
@@ -37,15 +38,12 @@ class ConvolutionResult:
         else :         raise IndexError(f"{key} > 2")
 
 class LHC_GW_CONV(BaseWPGenerator):
-    def __init__(self, start: Waypoint, end:Waypoint = None, l:int=100, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.start = start
-        self.end = end
-        self.l = l
-        self.search_threshold = 0
+        self.settings = WaypointAlgSettings.LHC_GW_CONV()
 
-        if self.animate:
+        if self.settings.animate:
             plt.ion()
             fig = plt.figure()
             # for stopping simulation with the esc key.
@@ -66,7 +64,7 @@ class LHC_GW_CONV(BaseWPGenerator):
             yield (i:=i+1)
 
     def GW(self) -> Waypoints:
-        l_iterator = range(5,self.l)
+        l_iterator = range(5,self.settings.l_value)
         t = time.time()
         return_dict = {}
         if self.threaded:
@@ -113,7 +111,7 @@ class LHC_GW_CONV(BaseWPGenerator):
         accumulator = 0
         visited = []
 
-        cur = self.start
+        cur = self.settings.start
         t = time.time()
 
         C = self.prob_map.max/float(l)
