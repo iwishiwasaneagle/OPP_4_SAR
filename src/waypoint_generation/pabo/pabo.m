@@ -1,19 +1,11 @@
-function [x] = pabo(inp_prob_map, optim_alg, wps)
+function [x] = pabo(optim_alg, wps)
 
 rng default
-global prob_map radius unit_endurance unit_endurance_miss_const prob_accum_const 
 
-prob_map = double(inp_prob_map)/sum(inp_prob_map,'all');
-
-radius = 2;
-
-unit_endurance = 80;
-unit_endurance_miss_const = 1;
-prob_accum_const = 500;
+global prob_map
 
 lower = 1;
 upper = length(prob_map);
-
 
 if optim_alg == "fmincon"
     x0 = rand(wps,2)*upper;
