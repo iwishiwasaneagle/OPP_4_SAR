@@ -30,13 +30,13 @@ jobs:
         run: python -m pip install --upgrade pip matplotlib
 
       - name: Gen graph
-        run: python3 ./helper/visualize.py save
+        run: python3 ./helpers/visualize.py save
           
       - name: Commit documentation changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add ./helper/stats.png
+          git add ./helpers/stats.png
           git commit -am "Updated stats.png" || true
           # The above command will fail if no changes were present, so we ignore
           # the return code.
