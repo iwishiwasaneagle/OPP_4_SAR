@@ -10,15 +10,14 @@ import time
 import os
 
 from src.data_models.probability_map import ProbabilityMap
-from src.waypoint_generation.waypoint_factory import WaypointFactory, WaypointAlgorithmEnum
-from src.waypoint_generation import CostFunc
+from src.waypoint_generation import WaypointFactory, WaypointAlgorithmEnum, CostFunc
 
 prob_map_img = "img/probability_imgs/prob_map_3_multimodal.png"
 
 
 if __name__ == "__main__":
     prob_map = ProbabilityMap.fromPNG(prob_map_img)
-    prob_map.lq_shape = (12,12)
+    prob_map.lq_shape = (5,5)
     
     dict_ = {}    
     fname = 'algorithms_output.json'
@@ -28,7 +27,7 @@ if __name__ == "__main__":
 
     dict_['img'] = prob_map.lq_prob_map.tolist()
 
-    for alg in [WaypointAlgorithmEnum.PABO]:#,WaypointAlgorithmEnum.PARALLEL_SWATHS ,WaypointAlgorithmEnum.LHC_GW_CONV, WaypointAlgorithmEnum.MODIFIED_LAWNMOWER]:
+    for alg in [WaypointAlgorithmEnum.PABO,WaypointAlgorithmEnum.PARALLEL_SWATHS ,WaypointAlgorithmEnum.LHC_GW_CONV, WaypointAlgorithmEnum.MODIFIED_LAWNMOWER]:
         
         t = time.time()
 
