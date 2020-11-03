@@ -1,2 +1,2 @@
-from .pabo import PABO, PABOSolverEnum
+from .pabo import PABO
 from .cost_func import CostFunc

@@ -1,16 +1,15 @@
 from .base_wp_generator import BaseWPGenerator
 from src.data_models.probability_map import ProbabilityMap
 from src.data_models.positional.waypoint import Waypoint, Waypoints
-from src.waypoint_generation.waypoint_factory import WaypointAlgSettings
+from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
 import numpy as np
 import itertools
 import time
 
 class ModifiedLawnmower(BaseWPGenerator):
     def __init__(self, **kwargs):
-        self.settings = WaypointAlgSettings.ModifiedLawnmower()
-
         super().__init__(**kwargs)
+        self.settings = WaypointAlgSettings.ModifiedLawnmower()
         
         self.__normalize_columns_in_pm()
         
@@ -67,11 +66,11 @@ class ModifiedLawnmower(BaseWPGenerator):
             if c%10000==0:
                 perm_iter = itertools.permutations(np.random.permutation(arr_to_perm))
 
-            if c >= max_iter: 
+            if c >= max_iter or c>=N_perms: 
                 break
         
         string = f"{100*float(c)/N_perms:.2f}% after {time.time()-t0:.1f}s and {c} iterations | p_opt={p_opt} with cost={cost_opt}"
-        print(" "*len(string),end='\r')
+        print(" "*len(string)*1.3,end='\r')
         print(string,end='\n')
 
         wps = Waypoints([Waypoint(0,0)])

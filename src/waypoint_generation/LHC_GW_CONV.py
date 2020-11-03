@@ -1,7 +1,7 @@
 from src.waypoint_generation.base_wp_generator import BaseWPGenerator
 from src.data_models.probability_map import ProbabilityMap
 from src.data_models.positional.waypoint import Waypoint,Waypoints
-from src.waypoint_generation.waypoint_factory import WaypointAlgSettings
+from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
 from src.simulation.parameters import *
 
 import matplotlib.pyplot as plt
@@ -42,6 +42,8 @@ class LHC_GW_CONV(BaseWPGenerator):
         super().__init__(**kwargs)
 
         self.settings = WaypointAlgSettings.LHC_GW_CONV()
+
+        self.search_threshold = 0
 
         if self.settings.animate:
             plt.ion()
@@ -107,11 +109,11 @@ class LHC_GW_CONV(BaseWPGenerator):
 
     def LHC_CONV(self,l=0, ret_dict: dict={}) -> Waypoints:
         print(f"({l})\tStarting LHC_CONV with l={l}")
-        wps = [self.start]
+        wps = [self.settings.start_wp]
         accumulator = 0
         visited = []
 
-        cur = self.settings.start
+        cur = wps[0]
         t = time.time()
 
         C = self.prob_map.max/float(l)

@@ -59,7 +59,8 @@ function cost = cost_func(x_inp)
     
     dists = vecnorm(x_inp(2:end,:)-x_inp(1:end-1,:),2,2);
     dist = sum(dists,'all');
-    cost = cost + unit_endurance_miss_const*(unit_endurance-dist)^2;
+    %cost = cost + unit_endurance_miss_const*(unit_endurance-dist)^2;
+    cost = cost + abs(dist/unit_endurance); % unit_endurance_miss_const*(unit_endurance-dist)^2;
     
     
 end

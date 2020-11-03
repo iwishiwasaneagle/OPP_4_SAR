@@ -3,7 +3,7 @@ from src.data_models.probability_map import ProbabilityMap
 import numpy as np
 import matplotlib.pyplot as plt
 from src.data_models.positional.waypoint import Waypoints
-from src.waypoint_generation.waypoint_factory import WaypointAlgSettings
+from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
 
 
 class BaseWPGenerator(ABC):

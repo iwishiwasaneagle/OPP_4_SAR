@@ -1,7 +1,7 @@
 {
     "radius": 0.5,
-    "unit_endurance_miss_const": 0.008,
+    "unit_endurance_miss_const": 1,
     "prob_accum_const": 500,
     "wp_count":16,
-    "solver": "FMINCON"
+    "pabo_solver": "FMINCON"
 }

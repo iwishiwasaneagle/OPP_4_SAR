@@ -1,4 +1,4 @@
-from ..base_wp_generator import BaseWPGenerator
+from src.waypoint_generation.base_wp_generator import BaseWPGenerator
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,12 +12,9 @@ import json
 from src.data_models.probability_map import ProbabilityMap
 from src.data_models.positional.waypoint import Waypoint,Waypoints
 from src.matlab_helper import MatlabHelper
-from src.waypoint_generation.waypoint_factory import WaypointAlgSettings
+from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
+from src.enums import PABOSolverEnum
 
-class PABOSolverEnum(Enum):
-    FMINCON=auto()
-    GA=auto()
-    PARTICLESWARM=auto()
 
 class PABO(BaseWPGenerator):
     def __init__(self,**kwargs):
