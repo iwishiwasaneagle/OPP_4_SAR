@@ -2,5 +2,6 @@
     "python.pythonPath": "venv/bin/python",
     "cSpell.words": [
         "fname"
-    ]
+    ],
+    "python.dataScience.jupyterServerURI": "local"
 }

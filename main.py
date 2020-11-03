@@ -17,7 +17,7 @@ prob_map_img = "img/probability_imgs/prob_map_3_multimodal.png"
 
 if __name__ == "__main__":
     prob_map = ProbabilityMap.fromPNG(prob_map_img)
-    prob_map.lq_shape = (5,5)
+    prob_map.lq_shape = (10,10)
     
     dict_ = {}    
     fname = 'algorithms_output.json'
@@ -27,18 +27,18 @@ if __name__ == "__main__":
 
     dict_['img'] = prob_map.lq_prob_map.tolist()
 
-    for alg in [WaypointAlgorithmEnum.PABO,WaypointAlgorithmEnum.PARALLEL_SWATHS ,WaypointAlgorithmEnum.LHC_GW_CONV, WaypointAlgorithmEnum.MODIFIED_LAWNMOWER]:
+    for alg in [WaypointAlgorithmEnum.PABO]:#,WaypointAlgorithmEnum.PARALLEL_SWATHS ,WaypointAlgorithmEnum.LHC_GW_CONV, WaypointAlgorithmEnum.MODIFIED_LAWNMOWER]:
         
         t = time.time()
 
         waypoints = WaypointFactory(alg, prob_map, Waypoint(0,0),threaded=True,animate=False).generate()
 
-        # sim = sim.simulation(waypoints, animate=False)
-        # vehicle = sim.run()
+        vehicle = sim.simulation(waypoints, animate=False).run()
         
         alg_dict = {}
         alg_dict["wps"] = [(float(f.x),float(f.y)) for f in waypoints]
         alg_dict["time"] = time.time()-t
+        alg_dict["vehicle"] = vehicle.data
 
         dict_[str(alg)] = alg_dict
 
