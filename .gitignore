@@ -139,3 +139,5 @@ cython_debug/
 
 # MATLAB
 *.m~
+
+algorithms_output.json
