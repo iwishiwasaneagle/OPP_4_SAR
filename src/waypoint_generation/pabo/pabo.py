@@ -15,16 +15,18 @@ from src.matlab_helper import MatlabHelper
 from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
 from src.enums import PABOSolverEnum
 
+from loguru import logger
 
 class PABO(BaseWPGenerator):
     def __init__(self,**kwargs):
+        if 'solver' in kwargs and isinstance(kwargs['solver'], PABOSolverEnum):
+            self.solver = kwargs.pop('solver')
+
         super().__init__(**kwargs)
 
-        print("Starting matlab engine...")
         self.mat_eng = MatlabHelper.instance()
         path = os.path.join(os.getcwd(),'src', 'waypoint_generation')
         self.mat_eng.eng.addpath(os.path.join(path,'pabo'))
-        print(f"Matlab engine started as {self.mat_eng}")
         
         self.settings = WaypointAlgSettings.PABO()
         
@@ -38,8 +40,12 @@ class PABO(BaseWPGenerator):
             mbool([False])
             )
         
+
         self.wp_count = self.settings.wp_count
-        self.solver = PABOSolverEnum[self.settings.solver]
+        if 'solver' not in self.__dict__:
+            self.solver = self.settings.pabo_solver
+
+        logger.debug(f"Optimisation solver set to {self.solver}")
 
     @property
     def sweep_radius(self) -> float:

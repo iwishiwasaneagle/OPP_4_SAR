@@ -5,11 +5,13 @@ import matplotlib.pyplot as plt
 from src.data_models.positional.waypoint import Waypoints
 from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
 
+from loguru import logger
 
 class BaseWPGenerator(ABC):
     def __init__(self, prob_map: ProbabilityMap = None, threaded: bool = True):
         if not isinstance(prob_map,ProbabilityMap): raise TypeError(f"prob_map can't be type {type(prob_map)}. {ProbabilityMap} expected")
-        
+        logger.debug(f"Start of {self.__class__.__name__}")
+
         self.settings =  WaypointAlgSettings.Global()
         self.threaded = threaded
         self.animate = not self.threaded and self.settings.animate
@@ -28,3 +30,6 @@ class BaseWPGenerator(ABC):
     @abstractmethod
     def waypoints(self) -> Waypoints:
         return NotImplemented
+
+    def __del__(self):
+        logger.debug(f"End of {self.__class__.__name__}")

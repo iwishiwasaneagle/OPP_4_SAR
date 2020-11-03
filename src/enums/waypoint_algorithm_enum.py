@@ -5,3 +5,6 @@ class WaypointAlgorithmEnum(Enum):
     PARALLEL_SWATHS = auto()
     MODIFIED_LAWNMOWER  = auto()
     PABO = auto()
+    PABO_FMINCON = auto()
+    PABO_GA = auto()
+    PABO_PARTICLESWARM = auto()

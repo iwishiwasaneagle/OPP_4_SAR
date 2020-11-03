@@ -5,6 +5,8 @@ from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
 import numpy as np
 import itertools
 import time
+from loguru import logger
+
 
 class ModifiedLawnmower(BaseWPGenerator):
     def __init__(self, **kwargs):
@@ -52,16 +54,14 @@ class ModifiedLawnmower(BaseWPGenerator):
 
             if cost<cost_opt:
                 string = f"{100*float(c)/N_perms:.2f}% after {time.time()-t0:.1f}s and {c} iterations | New best: p_opt={p_opt} with cost={cost_opt}"
-                print(int(len(string)*1.3)*' ',end='\r')
-                print(string)
+                logger.debug(string)
                 cost_opt = cost
                 p_opt = perm
 
             c+=1
-            if c==1 or c%5000==0:
-                string = f"{100*float(c)/(N_perms if N_perms<max_iter else max_iter):.2f}% after {time.time()-t0:.1f}s and {c}/{N_perms if N_perms<max_iter else max_iter} iterations | p_cur={perm} with cost={cost}"
-                print(" "*len(string),end='\r')
-                print(string,end='\r')
+            # if c==1 or c%50000==0:
+            #     string = f"{100*float(c)/(N_perms if N_perms<max_iter else max_iter):.2f}% after {time.time()-t0:.1f}s and {c}/{N_perms if N_perms<max_iter else max_iter} iterations | p_cur={perm} with cost={cost}"
+            #     logger.debug(string)
 
             if c%10000==0:
                 perm_iter = itertools.permutations(np.random.permutation(arr_to_perm))
@@ -70,8 +70,7 @@ class ModifiedLawnmower(BaseWPGenerator):
                 break
         
         string = f"{100*float(c)/N_perms:.2f}% after {time.time()-t0:.1f}s and {c} iterations | p_opt={p_opt} with cost={cost_opt}"
-        print(" "*len(string)*1.3,end='\r')
-        print(string,end='\n')
+        logger.info(string)
 
         wps = Waypoints([Waypoint(0,0)])
 

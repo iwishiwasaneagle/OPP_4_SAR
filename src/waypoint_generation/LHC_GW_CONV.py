@@ -12,6 +12,8 @@ from enum import IntEnum
 
 from typing import List
 
+from loguru import logger
+
 class ConvolutionType(IntEnum):
     LARGE = 3
     MEDIUM = 2
@@ -70,7 +72,7 @@ class LHC_GW_CONV(BaseWPGenerator):
         t = time.time()
         return_dict = {}
         if self.threaded:
-            print("Starting GW w/ threading")
+            logger.debug("Starting GW w/ threading")
             manager = multiprocessing.Manager()
             return_dict = manager.dict()
             jobs = []
@@ -83,13 +85,13 @@ class LHC_GW_CONV(BaseWPGenerator):
             for proc in jobs:
                 proc.join()
 
-            print(f"\nFinished GW w/ threading. Time taken: {time.time()-t:.2f}s")
+            logger.debug(f"Finished GW w/ threading. Time taken: {time.time()-t:.2f}s")
         else:
-            print("Starting GW w/o threading")
+            logger.debug("Starting GW w/o threading")
             for l in l_iterator:
                 return_dict[l] = self.LHC_CONV(l,return_dict)
                 
-            print(f"\nFinished GW w/o threading. Time taken: {time.time()-t:.2f}s")
+            logger.debug(f"Finished GW w/o threading. Time taken: {time.time()-t:.2f}s")
 
         best_l = None
         best_wps = None
@@ -104,11 +106,11 @@ class LHC_GW_CONV(BaseWPGenerator):
                 best_wps = wps
                 best_l = l
 
-        print(f"l={l} had {100*best_prob:.2f}% efficiency with {len(wps)} waypoints")
+        logger.info(f"l={l} had {100*best_prob:.2f}% efficiency")
         return best_wps
 
     def LHC_CONV(self,l=0, ret_dict: dict={}) -> Waypoints:
-        print(f"({l})\tStarting LHC_CONV with l={l}")
+        logger.debug(f"({l}) Starting LHC_CONV with l={l}")
         wps = [self.settings.start_wp]
         accumulator = 0
         visited = []
@@ -122,10 +124,6 @@ class LHC_GW_CONV(BaseWPGenerator):
         for i in self._inf():
             plt.cla()
             neighbours = np.array(self.neighbours(cur, visited, temp_prob_map))
-            if i%100 == 0:
-                end='\n'
-                if not self.threaded: end='\r'
-                print(f"({l})\tProgress: i={i}", end=end)
             try:
                 best = None
                 while best is None:
@@ -173,7 +171,7 @@ class LHC_GW_CONV(BaseWPGenerator):
             cur = wps[-1]
             visited.append(best)
            
-        print(f"({l})\tCompleted in {time.time()-t:.3f}s with local score {accumulator:.4f} and {conflicts} conflicts")
+        logger.debug(f"({l}) Completed in {time.time()-t:.3f}s with local score {accumulator:.4f} and {conflicts} conflicts", enqueue=True)
 
         wps = Waypoints([Waypoint(f.x+0.5, f.y+0.5) for f in wps]) # Bring the coord into the center of the square
 

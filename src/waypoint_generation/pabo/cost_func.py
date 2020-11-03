@@ -13,10 +13,8 @@ from src.data_models.positional.waypoint import Waypoint,Waypoints
 
 class CostFunc:
     def __init__(self):
-        print("Starting matlab engine...")
         self.mat_eng = MatlabHelper.instance()
         self.mat_eng.eng.addpath(os.path.join(*[os.getcwd()] + self.__module__.split('.')[:-1]))
-        print(f"Matlab engine started as {self.mat_eng}")
 
     def calculate(self, path: Waypoints, prob_map: ProbabilityMap, onlyAccumulateProbability: bool = True) -> float:
         mdouble_path = mdouble(path.toNumpyArray().tolist())

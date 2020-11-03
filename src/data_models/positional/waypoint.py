@@ -32,6 +32,7 @@ class Waypoints(AbstractListObject):
             items.append(tmpWp)
         return Waypoints(items)
 
+    @property
     def dist(self) -> float:
         wps = self.toNumpyArray()
         return np.sum(np.linalg.norm(wps[1:] - wps[:-1],axis=1))

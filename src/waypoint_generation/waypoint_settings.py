@@ -1,5 +1,6 @@
 import json
 from src.enums import *
+import enum
 import os
 from src.data_models.positional.waypoint import Waypoint
 
@@ -20,7 +21,11 @@ class WPSettingsDecoder(json.JSONDecoder):
 class WPSettingsEncoder(json.JSONEncoder):    
     def __init__(self, *args, **kwargs):
         json.JSONEncoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
-
+    def default(self, obj):
+        if isinstance(obj, Waypoint):
+            return [obj.x, obj,y]
+        if isinstance(obj, enum.Enum):
+            return obj.name
 
 class WaypointAlgSettings:
     class _BaseSetting:
