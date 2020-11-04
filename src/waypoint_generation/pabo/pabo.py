@@ -26,7 +26,7 @@ class PABO(BaseWPGenerator):
 
         self.mat_eng = MatlabHelper.instance()
         path = os.path.join(os.getcwd(),'src', 'waypoint_generation')
-        self.mat_eng.eng.addpath(os.path.join(path,'pabo'))
+        self.mat_eng.eng.addpath(os.path.join(path,'pabo'),**self.mat_eng.std_kwargs)
         
         self.settings = WaypointAlgSettings.PABO()
         
@@ -37,7 +37,9 @@ class PABO(BaseWPGenerator):
             mdouble([self.settings.unit_endurance]),
             mdouble([self.settings.unit_endurance_miss_const]),  
             mdouble([self.settings.prob_accum_const]), 
-            mbool([False])
+            mbool([False]),
+            mbool([self.animate]),
+            **self.mat_eng.std_kwargs
             )
         
 
@@ -55,8 +57,9 @@ class PABO(BaseWPGenerator):
     def waypoints(self) -> Waypoints:
         mdouble_wp_count = mdouble([self.wp_count])
         solver_str = str(self.solver).split(".")[1].lower()
-       
-        x = self.mat_eng.eng.pabo(solver_str,mdouble_wp_count)
+        logger.trace("Pre-matlab")
+        x = self.mat_eng.eng.pabo(solver_str,mdouble_wp_count, **self.mat_eng.std_kwargs)
+        logger.trace("Post-matlab")
          
         return Waypoints([list(f) for f in x])
 

@@ -8,7 +8,7 @@ function cost = cost_func(x_inp)
     
     [max_x,max_y] = size(prob_map);
 
-    r = radius;
+    r = radius
     r_extra_search = 1;
 
     poly = polybuffer(x_inp,'Lines',r);
@@ -60,7 +60,7 @@ function cost = cost_func(x_inp)
     dists = vecnorm(x_inp(2:end,:)-x_inp(1:end-1,:),2,2);
     dist = sum(dists,'all');
     %cost = cost + unit_endurance_miss_const*(unit_endurance-dist)^2;
-    cost = cost + abs(dist/unit_endurance); % unit_endurance_miss_const*(unit_endurance-dist)^2;
+    cost = cost + unit_endurance_miss_const*abs(dist/unit_endurance); % unit_endurance_miss_const*(unit_endurance-dist)^2;
     
     
 end
