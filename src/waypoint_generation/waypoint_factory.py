@@ -9,21 +9,23 @@ from loguru import logger
 T = TypeVar("T", bound="WaypointFactory")
 
 class WaypointFactory:
-    def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, threaded: bool=True):
+    def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, animate: bool=False, threaded: bool=True):
         
         self.alg = alg
 
         self.prob_map = prob_map
-        
+
         assert(isinstance(threaded, bool))
         self.threaded = threaded
+        assert(isinstance(animate, bool))
+        self.animate = animate
     
     def setEnd(self, x:int, y:int) -> T:
         self.end = Waypoint(x,y)
         return self
 
     def generate(self) -> Waypoints:
-        kwargs = {'prob_map':self.prob_map,'threaded':self.threaded}
+        kwargs = {'prob_map':self.prob_map,'threaded':self.threaded,'animate':self.animate}
         waypoints = None
 
         if self.alg == WaypointAlgorithmEnum.LHC_GW_CONV:

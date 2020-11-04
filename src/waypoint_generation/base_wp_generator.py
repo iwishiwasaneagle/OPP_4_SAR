@@ -8,13 +8,13 @@ from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
 from loguru import logger
 
 class BaseWPGenerator(ABC):
-    def __init__(self, prob_map: ProbabilityMap = None, threaded: bool = True):
+    def __init__(self, prob_map: ProbabilityMap = None, animate:bool=False,threaded: bool = True):
         if not isinstance(prob_map,ProbabilityMap): raise TypeError(f"prob_map can't be type {type(prob_map)}. {ProbabilityMap} expected")
         logger.debug(f"Start of {self.__class__.__name__}")
 
         self.settings =  WaypointAlgSettings.Global()
         self.threaded = threaded
-        self.animate = not self.threaded and self.settings.animate
+        self.animate = not self.threaded and animate
         self.prob_map = prob_map 
         
         if self.animate:

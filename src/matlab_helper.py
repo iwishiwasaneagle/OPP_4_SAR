@@ -1,4 +1,18 @@
 import matlab.engine
+from loguru import logger
+import io
+
+class StdErr(io.StringIO):
+    def write(self,string):
+        if not string.isspace() and len(string)>0:
+            logger.error("MATLAB "+string.rstrip())
+        super().write(string)
+
+class StdOut(io.StringIO):
+    def write(self,string):
+        if not string.isspace() and len(string)>0:
+            logger.debug("MATLAB: "+string.rstrip())
+        super().write(string)
 
 class Singleton:
     def __init__(self, decorated):
@@ -25,4 +39,12 @@ class Singleton:
 @Singleton
 class MatlabHelper:
     def __init__(self):
+        logger.debug(f"Starting {matlab.engine}")
+        self.stdout = StdOut()
+        self.stderr = StdErr()
         self.eng = matlab.engine.start_matlab()
+        logger.debug(f"{matlab.engine} instance at {self.eng}")
+
+    @property
+    def std_kwargs(self) -> dict:
+        return {"stdout":self.stdout,"stderr":self.stderr}
