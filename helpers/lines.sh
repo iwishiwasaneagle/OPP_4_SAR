@@ -1,4 +1,5 @@
 #!/bin/bash
+cloc --version
 cloc . --exclude-dir=venv,img --quiet --csv 
 LINES="$(cloc . --exclude-dir=venv,img --quiet --csv | grep -i SUM)"
 echo "LINES: $LINES"
