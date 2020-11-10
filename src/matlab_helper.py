@@ -1,6 +1,7 @@
 import matlab.engine
 from loguru import logger
 import io
+import sys
 
 class StdErr(io.StringIO):
     def write(self,string):
@@ -40,11 +41,9 @@ class Singleton:
 class MatlabHelper:
     def __init__(self):
         logger.debug(f"Starting {matlab.engine}")
-        self.stdout = StdOut()
-        self.stderr = StdErr()
         self.eng = matlab.engine.start_matlab()
         logger.debug(f"{matlab.engine} instance at {self.eng}")
 
     @property
-    def std_kwargs(self) -> dict:
-        return {"stdout":self.stdout,"stderr":self.stderr}
+    def kwargs(self) -> dict:
+        return {}#'stdout':StdOut(), 'stderr':StdErr()} TODO: Make this work!
