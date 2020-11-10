@@ -29,7 +29,6 @@ jobs:
       
       - name: Install
         run: |
-          sudo apt-get update
           pip3 install setuptools pylint anybadge
           make install
           sudo apt install graphviz cloc
