@@ -46,6 +46,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          git pull --force
           git add img/UML/* img/lines.svg
           git commit img/UML/* -m "Auto: Updated UML" || true
           git commit img/lines.svg -m "Auto: Updated badges" || true
