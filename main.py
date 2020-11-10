@@ -1,9 +1,5 @@
-from src.waypoint_generation import pabo
+from argparse import ArgumentDefaultsHelpFormatter
 import src.simulation.simulation as sim
-from src.data_models.positional.waypoint import Waypoint, Waypoints
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import numpy as np 
 from src.simulation.parameters import *
 
 import json
@@ -11,14 +7,15 @@ import time
 import os
 import argparse
 import sys
+import csv
 
 from loguru import logger
 
 from src.data_models.probability_map import ProbabilityMap
-from src.waypoint_generation import WaypointFactory, CostFunc
+from src.waypoint_generation import WaypointFactory
 from src.enums import WaypointAlgorithmEnum, PABOSolverEnum
 
-header = """
+header_main = """
 ===============================================================
       ____  _____  _____    _  _      _____         _____  
      / __ \|  __ \|  __ \  | || |    / ____|  /\   |  __ \ 
@@ -32,6 +29,34 @@ header = """
 ===============================================================
 """
 
+header_wp = """
+===================================================
+    __          _______     _____ ______ _   _ 
+    \ \        / /  __ \   / ____|  ____| \ | |
+     \ \  /\  / /| |__) | | |  __| |__  |  \| |
+      \ \/  \/ / |  ___/  | | |_ |  __| | . ` |
+       \  /\  /  | |      | |__| | |____| |\  |
+        \/  \/   |_|       \_____|______|_| \_|
+
+===================================================
+"""
+
+header_sar_setup = """
+=====================================================================
+      _____         _____     _____ ______ _______ _    _ _____  
+     / ____|  /\   |  __ \   / ____|  ____|__   __| |  | |  __ \ 
+    | (___   /  \  | |__) | | (___ | |__     | |  | |  | | |__) |
+     \___ \ / /\ \ |  _  /   \___ \|  __|    | |  | |  | |  ___/ 
+     ____) / ____ \| | \ \   ____) | |____   | |  | |__| | |     
+    |_____/_/    \_\_|  \_\ |_____/|______|  |_|   \____/|_|     
+                                                              
+=====================================================================
+"""
+epilog="""
+============================================================================================
+    OPP 4 SAR was created by Jan-Hendrik Ewers and falls under the GPL-3.0 License
+============================================================================================
+    """
 def is_valid_file(parser, arg):
     if not os.path.exists(arg):
         parser.error("The file %s does not exist!" % arg)
@@ -45,39 +70,7 @@ def is_valid_path_for_file(parser,arg):
     else:
         return os.path.abspath(arg)
 
-if __name__ == "__main__":
-#   ====================
-#   | ARGUMENT PARSING |
-#   ====================
-
-    parser = argparse.ArgumentParser(
-        description=header,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog='''
-============================================================================================
-    OPP 4 SAR was created by Jan-Hendrik Ewers and falls under the GPL-3.0 License
-============================================================================================
-    '''
-    )
-
-    # Prob map image
-    prob_map_group = parser.add_argument_group("PROBABILITY MAP")
-    prob_map_group.add_argument("-I","--in_file",
-        dest='filename', 
-        metavar='FILENAME',
-        required=False, 
-        type=lambda x: is_valid_file(parser, x),
-        default=os.path.join("img","probability_imgs","prob_map_1.png"),
-        help="probability map image file path"
-        )
-    prob_map_group.add_argument("--shape",
-        dest='shape',
-        nargs=2,
-        metavar=('X','Y'),
-        type=int,
-        help="desired shape of the probability map"
-    )
-
+def setup_wp_gen_parser(parser):
     # Algorithms
     lhc_gw_conv_group = parser.add_argument_group('LHC_GW_CONV')
     lhc_gw_conv_group.add_argument("-L",dest='lhc_gw_conv',action="store_true",help="calculate the LHC_GW_CONV path")
@@ -96,8 +89,9 @@ if __name__ == "__main__":
 
     # Operational
     operational = parser.add_argument_group('OPERATIONAL')
-    operational.add_argument("-v", dest='log_level', help="Log level", action='count', default=1)
     operational.add_argument("-A","--animate",action="store_true",help="Animate calculations where possible")
+    operational.add_argument("-a","--animate_sim",action="store_true",help="Animate simulation")
+    operational.add_argument('--sim',action='store_true',dest="simulate",help="Simulate each path with a point-mass model")
     operational.add_argument("-T","--threaded",action="store_true",help="Thread calculations where possible")
     operational.add_argument("-O","--out_file",
         default="output.json",
@@ -107,8 +101,209 @@ if __name__ == "__main__":
         type=lambda x: is_valid_path_for_file(parser, x)
         )
 
-    args = parser.parse_args()
+def setup_sar_parser(parser):
+    parser.add_argument('-n',
+        help="The amount of persons placed on the map",
+        type=int,
+        default=10,
+        dest="num_persons"
+        )
+    parser.add_argument("-O","--out_file",
+        dest="out_file",
+        metavar='FILENAME',
+        help="Output file name in csv format. If empty, outputs to stdout",
+        type=lambda x: is_valid_path_for_file(parser, x)
+        )  
+    parser.add_argument('-V','--visualize',
+        dest="visualize",
+        help="Visualize the output before quiting (requires matplotlib)",
+        action="store_true")
 
+def do_wp_gen(args):
+    #   ======================
+    #   | DATA STORAGE SETUP |
+    #   ======================
+    
+    dict_ = {}    
+    if os.path.isfile(args.out_file.upper()):
+        with open(args.out_file, 'r') as f:
+            dict_ = json.loads(json.load(f))
+
+
+    #   ==================
+    #   | PROB MAP SETUP |
+    #   ==================
+
+    prob_map = ProbabilityMap.fromPNG(args.filename)
+    logger.debug(f"ProbabilityMap({args.filename})")
+    if args.shape is not None:
+        prob_map.lq_shape = args.shape
+    dict_['img'] = prob_map.lq_prob_map.tolist()
+
+
+    #   ==============
+    #   | ALGS SETUP |
+    #   ==============
+
+    algs = []
+    if args.lhc_gw_conv: algs.append(WaypointAlgorithmEnum.LHC_GW_CONV)
+    if args.modified_lawnmower: algs.append(WaypointAlgorithmEnum.MODIFIED_LAWNMOWER)
+    if args.parallel_swaths: algs.append(WaypointAlgorithmEnum.PARALLEL_SWATHS)
+    if args.pabo: 
+        if "fmincon" in args.pabo_solver:
+            algs.append(WaypointAlgorithmEnum.PABO_FMINCON)
+        if "ga" in args.pabo_solver:
+            algs.append(WaypointAlgorithmEnum.PABO_GA)
+        if "particleswarm" in args.pabo_solver:
+            algs.append(WaypointAlgorithmEnum.PABO_PARTICLESWARM)
+
+
+    #   ================
+    #   | CALCULATIONS |
+    #   ================
+
+    for alg in algs:
+        middle = "|"+" "*8+f"{alg}" + " "*8 + "|"
+        start = "-"*len(middle)
+        end = start
+        logger.info(start)
+        logger.info(middle)
+        logger.info(end)
+        
+        alg_dict = {}
+        t = time.time()
+
+        # Gen WPS
+        waypoints = WaypointFactory(alg, prob_map, animate=args.animate,threaded=args.threaded).generate()
+        
+        # Sim drone
+        if args.simulate:
+            vehicle = sim.simulation(waypoints, animate=args.animate_sim).run()
+            alg_dict["vehicle"] = vehicle.data
+
+        # Store
+        alg_dict["wps"] = [(float(f.x),float(f.y)) for f in waypoints]
+        alg_dict["time"] = time.time()-t
+
+        dict_[str(alg)] = alg_dict
+
+
+    #   ================
+    #   | DATA STORAGE |
+    #   ================
+
+    with open(args.out_file,'w') as f:
+        data = json.dumps(dict_)
+        json.dump(data, f)
+    
+def do_sar(args):
+    #   ==================
+    #   | PROB MAP SETUP |
+    #   ==================
+
+    prob_map = ProbabilityMap.fromPNG(args.filename)
+    logger.debug(f"ProbabilityMap({args.filename})")
+    if args.shape is not None:
+        prob_map.lq_shape = args.shape
+
+    logger.info(f"Generating {args.num_persons} possible positions within the {prob_map.shape} area")
+    points = prob_map.place(args.num_persons)
+
+    outfile = sys.stdout
+    if args.out_file is not None:
+        outfile = open(args.out_file,'w')
+    
+    logger.debug(f"Writing output from sar to {outfile.name}")
+    csvwriter = csv.writer(outfile) 
+    csvwriter.writerows(points)
+
+    if args.visualize:
+        import matplotlib.pyplot as plt
+        import numpy as np
+        plt.figure()
+        x,y = np.meshgrid(np.arange(0,prob_map.shape[0]),np.arange(0,prob_map.shape[1]))
+        x,y = x.flatten(),y.flatten()
+
+        points = points.toNumpyArray()
+        img_placed = np.zeros(prob_map.shape)
+        unique, counts = np.unique([f"{f[0]},{f[1]}" for f in points], return_counts=True)
+        unique = [(int(f),int(g)) for f,g in [h.split(',') for h in unique]]
+
+        for xyi, c in zip(unique,counts):
+            x,y = xyi
+            img_placed[x,y] = c
+
+        plt.imshow(prob_map, interpolation=None,origin='bottom', extent=[0, prob_map.shape[0], 0, prob_map.shape[1]], cmap='gray')
+        plt.plot(points[:,0]+0.5,points[:,1]+0.5,'rx')
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.show()
+
+if __name__ == "__main__":
+#   ====================
+#   | ARGUMENT PARSING |
+#   ====================
+
+    parser = argparse.ArgumentParser(
+        description=header_main,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog
+    )
+
+    # Subparsers for
+    # - waypoint generation -> wp
+    # - simulation scenario -> sar
+
+    subparsers = parser.add_subparsers(dest="command")
+    wp_aliases = ["wp","w"]
+    wp_gen_parser = subparsers.add_parser(
+        wp_aliases[0],
+        aliases = wp_aliases[1:],
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=header_wp,
+        help="Waypoint generation utility with 4 algorithms",
+        epilog=epilog
+        )
+    setup_wp_gen_parser(wp_gen_parser)
+
+    sar_aliases = ["sar","s"]
+    sar_parser = subparsers.add_parser(
+        sar_aliases[0],
+        aliases=sar_aliases[1:],
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=header_sar_setup,
+        help="SAR simulation case setup utility SMART logic",
+        epilog=epilog
+        )
+    setup_sar_parser(sar_parser)
+
+
+#   ===============
+#   | GLOBAL ARGS |
+#   ===============
+
+    # Prob map image -> general parser
+    prob_map_group = parser.add_argument_group("PROBABILITY MAP")
+    prob_map_group.add_argument("-I","--in_file",
+        dest='filename', 
+        metavar='FILENAME',
+        required=False, 
+        type=lambda x: is_valid_file(parser, x),
+        default=os.path.join("img","probability_imgs","prob_map_1.png"),
+        help="probability map image file path"
+        )
+    prob_map_group.add_argument("--shape",
+        dest='shape',
+        nargs=2,
+        metavar=('X','Y'),
+        type=int,
+        help="desired shape of the probability map"
+    )
+
+    # Logging
+    parser.add_argument("-v", dest='log_level', help="Log level", action='count', default=0)
+
+    args = parser.parse_args()
 
 #   ================
 #   | LOGGER SETUP |
@@ -125,80 +320,19 @@ if __name__ == "__main__":
         log_level = 'TRACE'
 
     logger.add(sys.stderr,level=log_level)
-    logger.info("Welcome to \n"+header+"\n")
-    if args.log_level > 0:
-        logger.debug(f'Log level set to {log_level}')
+    logger.info("Welcome to \n"+header_main)
+    logger.debug(f'Log level set to {log_level}')
+    logger.debug(args)
 
 
-#   ======================
-#   | DATA STORAGE SETUP |
-#   ======================
-    
-    dict_ = {}    
-    if os.path.isfile(args.out_file.upper()):
-        with open(args.out_file, 'r') as f:
-            dict_ = json.loads(json.load(f))
+#   ========
+#   | MAIN |
+#   ========
 
+    if args.command in wp_aliases:
+        do_wp_gen(args)
+        logger.info("Exiting waypoint generation")
 
-#   ==================
-#   | PROB MAP SETUP |
-#   ==================
-
-    prob_map = ProbabilityMap.fromPNG(args.filename)
-    if args.shape is not None:
-        prob_map.lq_shape = args.shape
-    dict_['img'] = prob_map.lq_prob_map.tolist()
-
-
-#   ==============
-#   | ALGS SETUP |
-#   ==============
-
-    algs = []
-    if args.lhc_gw_conv: algs.append(WaypointAlgorithmEnum.LHC_GW_CONV)
-    if args.modified_lawnmower: algs.append(WaypointAlgorithmEnum.MODIFIED_LAWNMOWER)
-    if args.parallel_swaths: algs.append(WaypointAlgorithmEnum.PARALLEL_SWATHS)
-    if args.pabo: 
-        if "ga" in args.pabo_solver:
-            algs.append(WaypointAlgorithmEnum.PABO_GA)
-        if "fmincon" in args.pabo_solver:
-            algs.append(WaypointAlgorithmEnum.PABO_FMINCON)
-        if "particleswarm" in args.pabo_solver:
-            algs.append(WaypointAlgorithmEnum.PABO_PARTICLESWARM)
-
-
-#   ================
-#   | CALCULATIONS |
-#   ================
-
-    for alg in algs:
-        middle = "|"+" "*8+f"{alg}" + " "*8 + "|"
-        start = "-"*len(middle)
-        end = start
-        logger.info(start)
-        logger.info(middle)
-        logger.info(end)
-
-        t = time.time()
-
-        waypoints = WaypointFactory(alg, prob_map, animate=args.animate,threaded=args.threaded).generate()
-
-        vehicle = sim.simulation(waypoints, animate=args.animate).run()
-        
-        alg_dict = {}
-        alg_dict["wps"] = [(float(f.x),float(f.y)) for f in waypoints]
-        alg_dict["time"] = time.time()-t
-        alg_dict["vehicle"] = vehicle.data
-
-        dict_[str(alg)] = alg_dict
-
-
-#   ================
-#   | DATA STORAGE |
-#   ================
-
-    with open(args.out_file,'w') as f:
-        data = json.dumps(dict_)
-        json.dump(data, f)
-    
-    logger.info("Exiting")
+    elif args.command in sar_aliases:
+        do_sar(args)
+        logger.info("Exiting SAR setup")
