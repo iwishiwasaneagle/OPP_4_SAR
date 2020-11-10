@@ -1,5 +1,4 @@
-function cost = cost_func(x_inp)
-    global prob_map radius unit_endurance unit_endurance_miss_const prob_accum_const 
+function cost = cost_func(x_inp,prob_map, radius, unit_endurance, unit_endurance_miss_const, prob_accum_const)
     cost = 0;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -8,9 +7,10 @@ function cost = cost_func(x_inp)
     
     [max_x,max_y] = size(prob_map);
 
-    r = radius
+    r = radius;
     r_extra_search = 1;
 
+    
     poly = polybuffer(x_inp,'Lines',r);
     poly_fat = polybuffer(x_inp,'Lines', r+r_extra_search);
 
@@ -20,7 +20,7 @@ function cost = cost_func(x_inp)
 
     [in_fat,~] = inpolygon(x,y,poly_fat.Vertices(:,1),poly_fat.Vertices(:,2));
     [in,~] = inpolygon(x,y,poly.Vertices(:,1),poly.Vertices(:,2));
-
+    
     local_prob_map = zeros(max_x,max_y);
     
     in = reshape(in,max_x,max_y);
@@ -39,7 +39,7 @@ function cost = cost_func(x_inp)
         c3 = [xi,yi+1];
         c4 = [xi+1,yi+1];
 
-        truth_arr = [in(c2(1),c2(2)), in(c3(1),c3(2)), in(c4(1),c4(2))] > 0; % c1 is always in `in`
+        truth_arr = [in(c2(2),c2(1)), in(c3(2),c3(1)), in(c4(2),c4(1))] > 0; % c1 is always in `in`
 
         if all(truth_arr)
             local_prob_map(i) = prob_map(i);
@@ -50,7 +50,8 @@ function cost = cost_func(x_inp)
             polyout = intersect(grid_square,poly);
             local_prob_map(i) = prob_map(i)*polyout.area;
         end
-    end    
+    end 
+    
     cost = cost - prob_accum_const*sum(local_prob_map,'all');
     
     %%%%%%%%%%%%%
@@ -59,8 +60,5 @@ function cost = cost_func(x_inp)
     
     dists = vecnorm(x_inp(2:end,:)-x_inp(1:end-1,:),2,2);
     dist = sum(dists,'all');
-    %cost = cost + unit_endurance_miss_const*(unit_endurance-dist)^2;
-    cost = cost + unit_endurance_miss_const*abs(dist/unit_endurance); % unit_endurance_miss_const*(unit_endurance-dist)^2;
-    
-    
+    cost = cost + unit_endurance_miss_const*abs(dist/unit_endurance);
 end

@@ -1,5 +1,5 @@
-function c = cost_func_ga(x_inp)
+function c = cost_func_ga(x_inp,prob_map, radius, unit_endurance, unit_endurance_miss_const, prob_accum_const)
     len = length(x_inp);
     x = reshape(x_inp,[len/2,2]);    
-    c = cost_func(x);
+    c = cost_func(x,prob_map, radius, unit_endurance, unit_endurance_miss_const, prob_accum_const);
 end

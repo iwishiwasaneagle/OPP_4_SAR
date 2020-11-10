@@ -1,3 +1,3 @@
 function print(string)
-    system(strcat("echo ",string));
+    disp(string)
 end

@@ -47,7 +47,7 @@ class LHC_GW_CONV(BaseWPGenerator):
 
         self.search_threshold = 0
 
-        if self.settings.animate:
+        if self.animate:
             plt.ion()
             fig = plt.figure()
             # for stopping simulation with the esc key.

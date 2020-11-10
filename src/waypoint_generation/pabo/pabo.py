@@ -1,3 +1,4 @@
+from contextlib import redirect_stdout, redirect_stderr
 from src.waypoint_generation.base_wp_generator import BaseWPGenerator
 
 import numpy as np
@@ -6,16 +7,16 @@ import matplotlib.pyplot as plt
 from matlab import double as mdouble
 from matlab import logical as mbool
 import os
-from enum import Enum, auto
-import json
+import sys
 
 from src.data_models.probability_map import ProbabilityMap
 from src.data_models.positional.waypoint import Waypoint,Waypoints
-from src.matlab_helper import MatlabHelper
+from src.matlab_helper import MatlabHelper, StdOut
 from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
 from src.enums import PABOSolverEnum
 
 from loguru import logger
+
 
 class PABO(BaseWPGenerator):
     def __init__(self,**kwargs):
@@ -26,23 +27,9 @@ class PABO(BaseWPGenerator):
 
         self.mat_eng = MatlabHelper.instance()
         path = os.path.join(os.getcwd(),'src', 'waypoint_generation')
-        self.mat_eng.eng.addpath(os.path.join(path,'pabo'),**self.mat_eng.std_kwargs)
+        self.mat_eng.eng.addpath(os.path.join(path,'pabo'),**self.mat_eng.kwargs)
         
         self.settings = WaypointAlgSettings.PABO()
-        
-        mdouble_prob_map = mdouble(self.prob_map.lq_prob_map.tolist())
-        self.mat_eng.eng.set_globs(
-            mdouble_prob_map,
-            mdouble([self.sweep_radius]),
-            mdouble([self.settings.unit_endurance]),
-            mdouble([self.settings.unit_endurance_miss_const]),  
-            mdouble([self.settings.prob_accum_const]), 
-            mbool([False]),
-            mbool([self.animate]),
-            **self.mat_eng.std_kwargs
-            )
-        
-
         self.wp_count = self.settings.wp_count
         if 'solver' not in self.__dict__:
             self.solver = self.settings.pabo_solver
@@ -56,9 +43,20 @@ class PABO(BaseWPGenerator):
     @property
     def waypoints(self) -> Waypoints:
         mdouble_wp_count = mdouble([self.wp_count])
+        mdouble_prob_map = mdouble(self.prob_map.lq_prob_map.tolist())
         solver_str = str(self.solver).split(".")[1].lower()
-        logger.trace("Pre-matlab")
-        x = self.mat_eng.eng.pabo(solver_str,mdouble_wp_count, **self.mat_eng.std_kwargs)
+        
+        logger.trace("Pre-matlab")      
+        x = self.mat_eng.eng.pabo(
+            solver_str,
+            mdouble_wp_count,
+            mdouble_prob_map,
+            mdouble([self.sweep_radius]),
+            mdouble([self.settings.unit_endurance]),
+            mdouble([self.settings.unit_endurance_miss_const]),  
+            mdouble([self.settings.prob_accum_const]), 
+            mbool([self.animate]),
+            **self.mat_eng.kwargs)
         logger.trace("Post-matlab")
          
         return Waypoints([list(f) for f in x])
