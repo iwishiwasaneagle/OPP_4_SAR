@@ -19,5 +19,5 @@ make install
 
 ## Progress
 
-![Code stats](helper/stats.png)
+![Code stats](helpers/stats.png)
 
