@@ -1,12 +1,15 @@
 import numpy as np
+from numpy.lib.utils import deprecate
 from src.simulation.parameters import *
-from typing import TypeVar
+from typing import TypeVar, List, Tuple
 from PIL import Image, ImageOps
 from src.data_models.positional.waypoint import Waypoint, Waypoints
 import matplotlib.path as mpp
 import matplotlib.transforms as mpt
 
 import matplotlib.pyplot as plt
+
+from loguru import logger
 
 T = TypeVar('T', bound='ProbabilityMap')
 
@@ -56,6 +59,7 @@ class ProbabilityMap:
     @lq_shape.setter
     def lq_shape(self,val) -> None:
         if isinstance(val, (tuple,list)) and len(val) == 2:
+            logger.debug(f"Resizing probability map to {val}")
             self._lq_shape = val
             tmp_prob_map = np.array(self.toIMG().resize(val))[:,:,0]
             self.lq_prob_map = tmp_prob_map/np.sum(tmp_prob_map)
@@ -106,6 +110,7 @@ class ProbabilityMap:
         
         raise Exception(args)
 
+    @deprecate
     def sum_along_path(self,polygon: Waypoints, px_radius: float = 1, prob_map_hq=True, show: bool = False) -> float:
         prob_map = self.hq_prob_map if prob_map_hq else self.lq_prob_map
 
@@ -132,7 +137,22 @@ class ProbabilityMap:
             plt.ylim(0,prob_map.shape[1])
             plt.show()
 
-        return cost 
+        return cost
+
+    def place(self, n:int=1,prob_map_hq=True) -> Waypoints:
+        prob = self.hq_prob_map if prob_map_hq else self.lq_prob_map
+        
+        x,y = np.meshgrid(np.arange(0,prob.shape[0]),np.arange(0,prob.shape[1]))
+        x,y = x.flatten(),y.flatten()
+        xy  = np.vstack((x,y)).T
+
+        xy_indices = np.arange(len(xy))
+
+        choices = np.random.choice(xy_indices, n, p=prob.flatten())
+
+        points = xy[choices]
+
+        return Waypoints(points)
 
     def __getitem__(self, key):
         if isinstance(key, int):
