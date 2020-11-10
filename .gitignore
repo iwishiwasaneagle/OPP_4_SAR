@@ -141,3 +141,4 @@ cython_debug/
 *.m~
 
 algorithms_output.json
+output.json
