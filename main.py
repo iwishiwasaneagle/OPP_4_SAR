@@ -1,4 +1,7 @@
-from argparse import ArgumentDefaultsHelpFormatter
+from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentParser
+from src.data_models.positional.waypoint import Waypoints
+
+from numpy.core.function_base import linspace
 import src.simulation.simulation as sim
 from src.simulation.parameters import *
 
@@ -8,6 +11,7 @@ import os
 import argparse
 import sys
 import csv
+import re
 
 from loguru import logger
 
@@ -52,11 +56,34 @@ header_sar_setup = """
                                                               
 =====================================================================
 """
+
+header_simulate = """
+================================================================
+      _____ _____ __  __ _    _ _            _______ ______ 
+     / ____|_   _|  \/  | |  | | |        /\|__   __|  ____|
+    | (___   | | | \  / | |  | | |       /  \  | |  | |__   
+     \___ \  | | | |\/| | |  | | |      / /\ \ | |  |  __|  
+     ____) |_| |_| |  | | |__| | |____ / ____ \| |  | |____ 
+    |_____/|_____|_|  |_|\____/|______/_/    \_\_|  |______|
+
+================================================================
+"""                                                      
+
 epilog="""
 ============================================================================================
     OPP 4 SAR was created by Jan-Hendrik Ewers and falls under the GPL-3.0 License
 ============================================================================================
     """
+
+def min_length(nmin):
+    class MinLength(argparse.Action):
+        def __call__(self, parser, args, values, option_string=None):
+            if not nmin<=len(values):
+                msg=f"Argument \"{self.dest}\" requires at least {nmin} coordinates ({len(values)} received)"
+                parser.error(msg)
+            setattr(args, self.dest, values)
+    return MinLength 
+
 def is_valid_file(parser, arg):
     if not os.path.exists(arg):
         parser.error("The file %s does not exist!" % arg)
@@ -69,6 +96,15 @@ def is_valid_path_for_file(parser,arg):
         parser.error("The directory %s does not exist!" % path)
     else:
         return os.path.abspath(arg)
+
+def is_valid_wps(parser,arg):
+    r = r'([0-9]+(?:\.[0-9]+)?),([0-9]+(?:\.[0-9]+)?)'
+    res = re.findall(r,arg)
+    if len(res) == 0:
+        parser.error(f"Incorrect waypoint pattern in \"{arg}\"")
+    else:
+        return Waypoints([(float(a), float(b)) for a,b in res])
+
 
 def setup_wp_gen_parser(parser):
     # Algorithms
@@ -119,6 +155,17 @@ def setup_sar_parser(parser):
         help="Visualize the output before quiting (requires matplotlib)",
         action="store_true")
 
+def setup_sim_parser(parser):
+    parser.add_argument('WPS',
+        help="Input waypoints to the simulation", 
+        nargs="+", 
+        action=min_length(2), 
+        type=lambda x: is_valid_wps(parser,x))
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-5','--quintic_polynomial',action='store_true')
+    group.add_argument('-F','--fmincon',action='store_true')
+
+
 def do_wp_gen(args):
     #   ======================
     #   | DATA STORAGE SETUP |
@@ -135,7 +182,7 @@ def do_wp_gen(args):
     #   ==================
 
     prob_map = ProbabilityMap.fromPNG(args.filename)
-    logger.debug(f"ProbabilityMap({args.filename})")
+    logger.trace(f"ProbabilityMap({args.filename})")
     if args.shape is not None:
         prob_map.lq_shape = args.shape
     dict_['img'] = prob_map.lq_prob_map.tolist()
@@ -202,12 +249,12 @@ def do_sar(args):
     #   ==================
 
     prob_map = ProbabilityMap.fromPNG(args.filename)
-    logger.debug(f"ProbabilityMap({args.filename})")
+    logger.trace(f"ProbabilityMap({args.filename})")
     if args.shape is not None:
         prob_map.lq_shape = args.shape
 
     logger.info(f"Generating {args.num_persons} possible positions within the {prob_map.shape} area")
-    points = prob_map.place(args.num_persons)
+    points = prob_map.place(args.num_persons,prob_map_hq=False)
 
     outfile = sys.stdout
     if args.out_file is not None:
@@ -233,16 +280,16 @@ def do_sar(args):
             x,y = xyi
             img_placed[x,y] = c
 
-        plt.imshow(prob_map, interpolation=None,origin='bottom', extent=[0, prob_map.shape[0], 0, prob_map.shape[1]], cmap='gray')
+        plt.imshow(prob_map.toIMG(prob_map_hq=False), interpolation=None,origin='bottom', extent=[0, prob_map.lq_shape[0], 0, prob_map.lq_shape[1]], cmap='gray')
         plt.plot(points[:,0]+0.5,points[:,1]+0.5,'rx')
         plt.xlabel("X")
         plt.ylabel("Y")
         plt.show()
 
-if __name__ == "__main__":
-#   ====================
-#   | ARGUMENT PARSING |
-#   ====================
+def get_parser() -> argparse.ArgumentParser:
+    #   ====================
+    #   | ARGUMENT PARSING |
+    #   ====================
 
     parser = argparse.ArgumentParser(
         description=header_main,
@@ -266,7 +313,7 @@ if __name__ == "__main__":
         )
     setup_wp_gen_parser(wp_gen_parser)
 
-    sar_aliases = ["sar","s"]
+    sar_aliases = ["sar"]
     sar_parser = subparsers.add_parser(
         sar_aliases[0],
         aliases=sar_aliases[1:],
@@ -277,10 +324,21 @@ if __name__ == "__main__":
         )
     setup_sar_parser(sar_parser)
 
+    sim_aliases = ["sim", "simulate"]
+    sim_parser = subparsers.add_parser(
+        sim_aliases[0],
+        aliases=sim_aliases[1:],
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=header_simulate,
+        help="Simulation runner",
+        epilog=epilog
+        )
+    setup_sim_parser(sim_parser)
 
-#   ===============
-#   | GLOBAL ARGS |
-#   ===============
+
+    #   ===============
+    #   | GLOBAL ARGS |
+    #   ===============
 
     # Prob map image -> general parser
     prob_map_group = parser.add_argument_group("PROBABILITY MAP")
@@ -303,7 +361,18 @@ if __name__ == "__main__":
     # Logging
     parser.add_argument("-v", dest='log_level', help="Log level", action='count', default=0)
 
-    args = parser.parse_args()
+    return parser, wp_aliases,sar_aliases,sim_aliases
+
+
+if __name__ == "__main__":
+
+    parser, wp_aliases, sar_aliases, sim_aliases = get_parser()
+
+    if os.getenv('TERM_PROGRAM') != 'vscode':
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args('-I img/probability_imgs/prob_map_4_location_based.png -vvv sar -n 200 -V'.split())
+    
 
 #   ================
 #   | LOGGER SETUP |
@@ -322,7 +391,7 @@ if __name__ == "__main__":
     logger.add(sys.stderr,level=log_level)
     logger.info("Welcome to \n"+header_main)
     logger.debug(f'Log level set to {log_level}')
-    logger.debug(args)
+    logger.trace(args)
 
 
 #   ========
@@ -336,3 +405,6 @@ if __name__ == "__main__":
     elif args.command in sar_aliases:
         do_sar(args)
         logger.info("Exiting SAR setup")
+
+    elif args.command in sim_aliases:
+        print(args)
