@@ -42,8 +42,7 @@ class Vehicle:
 
         ## Controller
         T_x = m*des_x_acc + F_Dx
-        T_y = m*des_y_acc + F_Dy
-        
+        T_y = m*des_y_acc + F_Dy        
 
         ## Dynamics
         self.ddpos.x = (T_x-F_Dx)/m
@@ -59,7 +58,6 @@ class Vehicle:
         
         if self.animate:
             self._plot()
-
 
     def _store(self) -> None:
         self.data['pos']['x'].append(self.pos.x.item())

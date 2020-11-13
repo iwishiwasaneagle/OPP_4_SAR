@@ -32,6 +32,28 @@ class TestLHC_GW_CONV(unittest.TestCase):
             returned_sum = gen.convolute(wp, prob_map, i)
             self.assertAlmostEqual(expected_sum, returned_sum.value)
 
+class TestProbabilityMap(unittest.TestCase):
+
+    # Brute force reconstruction of the probability map using np.random.place within ProbabilityMap.place
+    def test_placer(self):
+        img = np.random.randint(255,size=(3,3))
+        prob = pm.ProbabilityMap(img)
+        points = prob.place(int(1e7))
+
+        x,y = np.meshgrid(np.arange(0,prob.shape[0]),np.arange(0,prob.shape[1]))
+        x,y = x.flatten(),y.flatten()
+
+        img_placed = np.zeros(prob.shape)
+        unique, counts = np.unique([f"{f.x},{f.y}" for f in points], return_counts=True)
+        unique = [(int(f),int(g)) for f,g in [h.split(',') for h in unique]]
+
+        for xyi, c in zip(unique,counts):
+            x,y = xyi
+            img_placed[x,y] = c
+            
+        img_placed = pm.ProbabilityMap(img_placed.T)
+
+        np.testing.assert_array_almost_equal(prob, img_placed, decimal=3)
 
         
 

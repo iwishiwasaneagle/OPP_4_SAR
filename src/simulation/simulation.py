@@ -31,7 +31,6 @@ class simulation:
                 des_pos = trajectory.position(t_local)
                 des_vel = trajectory.velocity(t_local)
                 des_acc = trajectory.acceleration(t_local)
-
                 # Step the vehicle
                 vehicle.step(des_pos, des_vel, des_acc)
 

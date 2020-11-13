@@ -1,4 +1,4 @@
 {
     "turn_radius": 2,
-    "max_iter": 2000000000
+    "max_iter": 50000000
 }
