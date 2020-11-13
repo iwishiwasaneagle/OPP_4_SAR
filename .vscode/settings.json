@@ -3,5 +3,5 @@
     "cSpell.words": [
         "fname"
     ],
-    "python.dataScience.jupyterServerURI": "local"
+    "jupyter.jupyterServerType": "local"
 }
