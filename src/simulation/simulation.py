@@ -1,6 +1,6 @@
 from math import cos, sin
 import numpy as np
-from src.simulation.vehicle import Vehicle
+from src.simulation.vehicle import Vehicle, VehicleSimData
 from src.simulation.trajectory import Trajectory, Trajectories
 from src.simulation.parameters import *
 from src.data_models.positional.waypoint import Waypoint, Waypoints
@@ -8,25 +8,39 @@ from src.data_models.positional.pose import Pose
 from typing import List, Tuple
 
 class simulation:
-    def __init__(self, waypoints: Waypoints=Waypoints(), animate:bool=False):
+    def __init__(self, waypoints: Waypoints,searched_object_location: Waypoint, search_radius:float = 0.5, animate:bool=False):
         self.waypoints=waypoints
+
         self.trajectories=Trajectories()
         self.animate = animate
+
+        self.search_radius = search_radius
+        self.searched_object_location = searched_object_location
     
-    def run(self) -> Vehicle:
+    def run(self) -> VehicleSimData:
         for i,wp in enumerate(self.waypoints):
             try:
-                trajectory = Trajectory(self.waypoints[i], self.waypoints[i+1], 1)
+                trajectory = Trajectory(wp, self.waypoints[i+1], 1)
                 self.trajectories.add(trajectory)
             except IndexError:
                 break
 
         vehicle = Vehicle(pos=Pose.fromWP(self.waypoints[0]), animate=self.animate)
 
-        t = 0   
+        t = 0
         for trajectory in self.trajectories:
             t_local = 0
             while t_local <= trajectory.T:
+                # Search for object
+                if self.searched_object_location is not None:
+                    # create distance vector
+                    v = np.array([vehicle.pos.x - self.searched_object_location.x,vehicle.pos.y-self.searched_object_location.y])
+                    # if distance is < search radius -> object found
+                    dist = np.linalg.norm(v)
+                    if dist<self.search_radius:
+                        vehicle.data.t_found = t
+                        break
+
                 # Calc desired position, velocity and acceleration from generated polynomial trajectory
                 des_pos = trajectory.position(t_local)
                 des_vel = trajectory.velocity(t_local)
@@ -38,4 +52,7 @@ class simulation:
                 t_local += dt
                 t += dt
 
-        return vehicle
+            if vehicle.end_sim:
+                break
+
+        return vehicle.data

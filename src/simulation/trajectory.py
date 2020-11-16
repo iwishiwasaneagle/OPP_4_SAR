@@ -3,9 +3,7 @@ from src.data_models.positional.waypoint import Waypoint, Waypoints
 from src.data_models.positional.pose import Pose
 from src.data_models.abstractListObject import AbstractListObject
 
-from typing import List, TypeVar, Tuple
-import json
-
+from typing import List, Type, TypeVar, Tuple
 
 T = TypeVar('T', bound='Trajectories')
 U = TypeVar('U', bound='Trajectory')
@@ -13,25 +11,18 @@ class Trajectories(AbstractListObject):
     def __init__(self, trajs:List[U] = []):
         super().__init__(trajs)
 
-    def toFile(self, fid):
-        data = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True)
-        json.dump(data,fid)
+def _type_check(var, expected):
+        if not isinstance(var, expected): 
+            raise TypeError(f"Type {expected} expected. {type(var)} received")
 
-    @staticmethod
-    def fromFile(fid):
-        data = json.load(fid)
-        items = []
-        for item in data[items]:
-            tmpTraj = Trajectory()
-            tmpTraj.__dict__ = item
-            items.append(tmpTraj)
-        return Waypoints(items)
-
-
-    
-    
 class Trajectory:
     def __init__(self, start_pos: Waypoint=Waypoint.zero(), dest_pos: Waypoint=Waypoint.zero(), T: float=5, start_vel:Pose=Pose.zero(), dest_vel:Pose=Pose.zero(), start_acc:Pose=Pose.zero(), dest_acc:Pose=Pose.zero()):
+        _type_check(start_pos, Waypoint)
+        _type_check(dest_pos, Waypoint)
+        _type_check(start_vel, Pose)
+        _type_check(dest_vel, Pose)
+        _type_check(start_acc, Pose)
+        _type_check(dest_acc, Pose)
 
         self.start_pos = start_pos
         self.dest_pos = dest_pos
