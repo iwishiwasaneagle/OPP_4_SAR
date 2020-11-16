@@ -39,12 +39,12 @@ class AbstractListObject(ABC):
     def toNumpyArray(self):
         return np.array(self.items)
 
-    @abstractmethod
-    def toFile(self, fid):
-        raise NotImplementedError()
+    # @abstractmethod
+    # def toFile(self, fid):
+    #     raise NotImplementedError()
 
-    @staticmethod
-    @abstractmethod
-    def fromFile(fid):
-        raise NotImplementedError()
+    # @staticmethod
+    # @abstractmethod
+    # def fromFile(fid):
+    #     raise NotImplementedError()
 

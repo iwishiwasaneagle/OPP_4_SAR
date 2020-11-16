@@ -2,11 +2,7 @@ import numpy as np
 from .abstractPositionDataObjects import AbstractPositionDataObject
 from src.data_models.abstractListObject import AbstractListObject
 from typing import TypeVar
-import numbers
-import matplotlib.path as mpp
-import json
 w = TypeVar('w',bound='Waypoint')
-
 
 class Waypoints(AbstractListObject):
     def __init__(self, *args):
@@ -17,33 +13,37 @@ class Waypoints(AbstractListObject):
         else:
             super().__init__(*args)
 
-    def toFile(self, fid):
-        data = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True)
-        json.dump(data,fid)
+    @property
+    def x(self):
+        return [f.x for f in self.items]
+    @property
+    def y(self):
+        return [f.y for f in self.items]
 
-    @staticmethod
-    def fromFile(fid):
-        raw_data = json.load(fid)
-        data = json.loads(raw_data)
-        items = []
-        for item in data["items"]:
-            tmpWp = Waypoint()
-            tmpWp.__dict__ = item
-            items.append(tmpWp)
-        return Waypoints(items)
+
+    # def toFile(self, fid):
+    #     data = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True)
+    #     json.dump(data,fid)
+
+    # @staticmethod
+    # def fromFile(fid):
+    #     raw_data = json.load(fid)
+    #     data = json.loads(raw_data)
+    #     items = []
+    #     for item in data["items"]:
+    #         tmpWp = Waypoint()
+    #         tmpWp.__dict__ = item
+    #         items.append(tmpWp)
+    #     return Waypoints(items)
 
     @property
     def dist(self) -> float:
         wps = self.toNumpyArray()
         return np.sum(np.linalg.norm(wps[1:] - wps[:-1],axis=1))
 
-
-            
-
-
 class Waypoint(AbstractPositionDataObject):
     def __init__(self,*args):
         super().__init__(*args)    
-    @staticmethod
-    def zero():
-        return Waypoint(0,0)
+    @classmethod
+    def zero(cls):
+        return cls(0,0)

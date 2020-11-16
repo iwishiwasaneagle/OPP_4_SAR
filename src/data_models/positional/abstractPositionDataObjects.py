@@ -30,7 +30,7 @@ class AbstractPoseDataObject(ABC):
         elif key == 1:
             return self._b
         else:
-            raise KeyError(f"Index key:{key} out of range for XYZ indexing (max. 1)")
+            raise KeyError(f"Index key:{key} out of range for XY indexing (max. 1)")
 
     def __iter__(self):
         self._n = 0

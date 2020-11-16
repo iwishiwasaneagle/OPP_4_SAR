@@ -110,35 +110,6 @@ class ProbabilityMap:
         
         raise Exception(args)
 
-    @deprecate
-    def sum_along_path(self,polygon: Waypoints, px_radius: float = 1, prob_map_hq=True, show: bool = False) -> float:
-        prob_map = self.hq_prob_map if prob_map_hq else self.lq_prob_map
-
-        x,y = np.meshgrid(np.arange(0,prob_map.shape[0]),np.arange(0,prob_map.shape[1]))
-        x,y = x.flatten(),y.flatten()
-        points = np.vstack((x,y)).T
-        
-        assert(isinstance(polygon, (Waypoints,np.ndarray)))
-        if isinstance(polygon,Waypoints): lines = polygon.toNumpyArray()
-        else: lines = polygon
-        lines = np.append(lines,lines[::-1],0)
-
-        polygon = mpp.Path(lines)
-        grid = (polygon.contains_points(points,radius=px_radius)).reshape(prob_map.shape[0],prob_map.shape[1])
-
-        cost = np.sum(prob_map*grid)
-
-
-        if show:
-            print(f"cost = {cost:.5f}")
-            plt.figure()
-            plt.imshow(prob_map*grid, cmap='hot', interpolation='nearest')
-            plt.xlim(0,prob_map.shape[0])
-            plt.ylim(0,prob_map.shape[1])
-            plt.show()
-
-        return cost
-
     def place(self, n:int=1,prob_map_hq=True) -> Waypoints:
         prob = self.hq_prob_map if prob_map_hq else self.lq_prob_map
         
@@ -180,4 +151,5 @@ class ProbabilityMap:
             raise KeyError(f"Type {type(key)} is not valid")
 
     def __len__(self):
-        return self.shape[0]          
+        return self.shape[0]         
+
