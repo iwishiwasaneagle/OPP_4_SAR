@@ -1,8 +1,20 @@
 import json
+from src.data_models.probability_map import ProbabilityMap
 from src.enums import *
 import enum
 import os
-from src.data_models.positional.waypoint import Waypoint
+from src.data_models.positional.waypoint import Waypoint, Waypoints
+
+class WpGenOutput:
+    def __init__(self,img:ProbabilityMap) -> None:
+        self.img = img
+        self.data = {}
+
+    def add_generated_wps(self, wps:Waypoints, time:float, algorithm:WaypointAlgorithmEnum):
+        assert(isinstance(wps, Waypoints))
+        assert(isinstance(algorithm,WaypointAlgorithmEnum))
+        dct = {'time':time,'wps':wps}
+        self.data[str(algorithm)] = dct
 
 class WPSettingsDecoder(json.JSONDecoder):
     def __init__(self, *args, **kwargs):
@@ -10,11 +22,9 @@ class WPSettingsDecoder(json.JSONDecoder):
     def object_hook(self, dct):
         updates = {}
         if 'pabo_solver' in dct:
-            updates['pabo_solver'] = PABOSolverEnum[dct['pabo_solver'].upper()]
-                    
+            updates['pabo_solver'] = PABOSolverEnum[dct['pabo_solver'].upper()]                    
         if 'start_wp' in dct:
             updates['start_wp'] = Waypoint(dct['start_wp'])
-
         dct.update(updates)
         return dct
 
@@ -23,7 +33,7 @@ class WPSettingsEncoder(json.JSONEncoder):
         json.JSONEncoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
     def default(self, obj):
         if isinstance(obj, Waypoint):
-            return [obj.x, obj,y]
+            return [obj.x, obj.y]
         if isinstance(obj, enum.Enum):
             return obj.name
 
