@@ -3,6 +3,7 @@ from .abstractPositionDataObjects import AbstractPositionDataObject
 from src.data_models.abstractListObject import AbstractListObject
 from typing import TypeVar
 w = TypeVar('w',bound='Waypoint')
+ws = TypeVar('ws',bound='Waypoints')
 
 class Waypoints(AbstractListObject):
     def __init__(self, *args):
@@ -19,6 +20,18 @@ class Waypoints(AbstractListObject):
     @property
     def y(self):
         return [f.y for f in self.items]
+
+    def interped(self,range_from,range_to) -> ws:
+        assert(len(range_from)==2)
+        assert(len(range_to)==2)
+
+        return_val = Waypoints(np.array([
+                np.interp(self.x,(0,range_from[0]),(0,range_to[0])),
+                np.interp(self.y,(0,range_from[1]),(0,range_to[1]))
+        ]).T)
+
+        return return_val
+
 
 
     # def toFile(self, fid):

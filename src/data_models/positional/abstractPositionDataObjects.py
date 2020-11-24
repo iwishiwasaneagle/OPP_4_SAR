@@ -7,8 +7,11 @@ class AbstractPoseDataObject(ABC):
         a,b=None,None
         if len(args) >= 3:
             raise Exception(f"Too many input arguments. 3 expected, received {len(args)}")
-        elif len(args) == 2 and all([isinstance(f,(numbers.Real,np.ndarray)) for f in args]):
+        elif len(args) == 2 and all([isinstance(f,numbers.Real) for f in args]):
             a,b = args
+        elif len(args) == 2 and all([isinstance(f,(list,np.ndarray)) and len(f)==1 for f in args]):
+            a = args[0][0]
+            b = args[1][0]
         elif len(args) == 1 and isinstance(args[0],(tuple, list)):
             a,b = args[0]
         else:
