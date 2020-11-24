@@ -33,7 +33,6 @@ class TestLHC_GW_CONV(unittest.TestCase):
             self.assertAlmostEqual(expected_sum, returned_sum.value)
 
 class TestProbabilityMap(unittest.TestCase):
-
     # Brute force reconstruction of the probability map using np.random.place within ProbabilityMap.place
     def test_placer(self):
         img = np.random.randint(255,size=(3,3))
