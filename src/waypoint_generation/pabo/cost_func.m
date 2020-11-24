@@ -1,6 +1,5 @@
 function cost = cost_func(x_inp,prob_map, radius, unit_endurance, unit_endurance_miss_const, prob_accum_const)
     cost = 0;
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%
     % ACCUMULATED PROBABILITY %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,12 +52,12 @@ function cost = cost_func(x_inp,prob_map, radius, unit_endurance, unit_endurance
     end 
     
     cost = cost - prob_accum_const*sum(local_prob_map,'all');
-    
+
     %%%%%%%%%%%%%
     % ENDURANCE %
     %%%%%%%%%%%%%
     
     dists = vecnorm(x_inp(2:end,:)-x_inp(1:end-1,:),2,2);
-    dist = sum(dists,'all');
-    cost = cost + unit_endurance_miss_const*abs(dist/unit_endurance);
+    d = sum(dists,'all');
+    cost = cost + unit_endurance_miss_const*abs(d/unit_endurance);
 end

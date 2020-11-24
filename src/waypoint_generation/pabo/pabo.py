@@ -38,7 +38,7 @@ class PABO(BaseWPGenerator):
 
     @property
     def sweep_radius(self) -> float:
-        return self.settings.radius
+        return self.settings.search_radius
     
     @property
     def waypoints(self) -> Waypoints:

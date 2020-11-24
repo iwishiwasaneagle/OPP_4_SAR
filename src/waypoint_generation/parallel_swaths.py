@@ -2,6 +2,7 @@ from .base_wp_generator import BaseWPGenerator
 from src.data_models.positional.waypoint import Waypoint, Waypoints
 from src.waypoint_generation.waypoint_settings import WaypointAlgSettings
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 class ParallelSwaths(BaseWPGenerator):
@@ -12,9 +13,9 @@ class ParallelSwaths(BaseWPGenerator):
     @property
     def waypoints(self) -> Waypoints:
         wps = Waypoints([self.settings.start_wp])
-        lower_y,upper_y = (1,self.prob_map.lq_shape[1]-1)
+        lower_y,upper_y = (1,self.prob_map.shape[0]-1)
 
-        rows = np.arange(1,self.prob_map.lq_shape[0])
+        rows = np.arange(1,self.prob_map.shape[1])
         at_bottom = True
         for r in rows:
             if at_bottom:
@@ -32,5 +33,4 @@ class ParallelSwaths(BaseWPGenerator):
                    Waypoint(r,lower_y),
                 )
             at_bottom = not at_bottom
-
         return wps

@@ -5,6 +5,17 @@ import enum
 import os
 from src.data_models.positional.waypoint import Waypoint, Waypoints
 
+class SarGenOutput:
+    def __init__(self) -> None:
+        self.data = [] 
+    def add_generated_locations(self, *args):
+        if isinstance(args[0] ,Waypoints):
+            self.data = [f for f in args[0]]
+        elif all([isinstance(f,Waypoint) for f in args]):
+            self.add_generated_locations(Waypoints(args))
+        else:
+            raise TypeError(f"Not type {type(Waypoints)} nor {type(Waypoint)}")
+
 class WpGenOutput:
     def __init__(self,img:ProbabilityMap) -> None:
         self.img = img
@@ -15,6 +26,7 @@ class WpGenOutput:
         assert(isinstance(algorithm,WaypointAlgorithmEnum))
         dct = {'time':time,'wps':wps}
         self.data[str(algorithm)] = dct
+        return self
 
 class WPSettingsDecoder(json.JSONDecoder):
     def __init__(self, *args, **kwargs):

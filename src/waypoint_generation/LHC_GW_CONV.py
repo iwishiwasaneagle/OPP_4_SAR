@@ -49,11 +49,10 @@ class LHC_GW_CONV(BaseWPGenerator):
 
         if self.animate:
             plt.ion()
-            fig = plt.figure()
+            fig = plt.figure(1)
             # for stopping simulation with the esc key.
             fig.canvas.mpl_connect('key_release_event',
                     lambda event: [exit(0) if event.key == 'escape' else None])
-
             self._ax = fig.add_subplot(111)
 
     @property
@@ -113,7 +112,7 @@ class LHC_GW_CONV(BaseWPGenerator):
         logger.debug(f"({l}) Starting LHC_CONV with l={l}")
         wps = [self.settings.start_wp]
         accumulator = 0
-        visited = []
+        visited = Waypoints([])
 
         cur = wps[0]
         t = time.time()
@@ -122,7 +121,7 @@ class LHC_GW_CONV(BaseWPGenerator):
         temp_prob_map = ProbabilityMap(np.clip(self.prob_map.prob_map - C, 0, None))
         conflicts = 0
         for i in self._inf():
-            plt.cla()
+            if self.animate: plt.cla()
             neighbours = np.array(self.neighbours(cur, visited, temp_prob_map))
             try:
                 best = None
@@ -160,7 +159,7 @@ class LHC_GW_CONV(BaseWPGenerator):
                         neighbours = np.delete(neighbours,ind,0)
                     
                     if self.animate: 
-                       self._plot(cur, neighbours, potential_best[0], visited, temp_prob_map)
+                       self._plot(cur, neighbours, potential_best[0], visited, temp_prob_map, l)
             except IndexError as e:
                 break
 
@@ -169,7 +168,7 @@ class LHC_GW_CONV(BaseWPGenerator):
             wps.append(best)
 
             cur = wps[-1]
-            visited.append(best)
+            visited.add(best)
            
         logger.debug(f"({l}) Completed in {time.time()-t:.3f}s with local score {accumulator:.4f} and {conflicts} conflicts", enqueue=True)
 
@@ -244,22 +243,18 @@ class LHC_GW_CONV(BaseWPGenerator):
         ]
         return [Waypoint(pos.x+f[0],pos.y+f[1]) for f in tmp]
     
-    def _plot(self, cur:Waypoint, neighbours: Waypoints, best: Waypoint, visited: Waypoints, prob_map: ProbabilityMap) -> None:
-        # plt.cla()
+    def _plot(self, cur:Waypoint, neighbours: Waypoints, best: Waypoint, visited: Waypoints, prob_map: ProbabilityMap, l_val:float) -> None:
         if len(visited) > 0:
-            visited = np.array(visited)
-            self._ax.plot(visited[:,0],visited[:,1], color='r')
-
+            self._ax.plot(visited.x,visited.y, color='r')
         for i in neighbours:
             self._ax.add_artist(plt.Circle(i[0], size, color='b'))
-
         self._ax.add_artist(plt.Circle((cur.x,cur.y), size, color='r'))
         self._ax.add_artist(plt.Circle(best, size, color='g'))
         img = prob_map.toIMG()
-        plt.imshow(img, origin='upper')
-        plt.xlim(0,img.size[0])
-        plt.ylim(0,img.size[1])
-
+        self._ax.imshow(img)
+        self._ax.set_ylabel("Y")
+        self._ax.set_xlabel("X")
+        self._ax.set_title(f"l={l_val}")
         plt.pause(0.001)
        
 
