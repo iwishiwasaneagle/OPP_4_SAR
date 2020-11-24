@@ -1,20 +1,23 @@
-from src.json_helpers import GlobalJsonEncoder
-from src.waypoint_generation.waypoint_settings import WpGenOutput
-from src.data_models.positional.waypoint import Waypoint
+import PIL
+from src.json_helpers import GlobalJsonDecoder, GlobalJsonEncoder
+from src.simulation.simulation import SimRunnerOutput
+from src.waypoint_generation.waypoint_settings import SarGenOutput, WpGenOutput
+from src.data_models.positional.waypoint import Waypoint, Waypoints
 
-from numpy.core.function_base import linspace
 import src.simulation.simulation as sim
 from src.simulation.parameters import *
 
+import numpy as np
 import json
 import time
 import os
 import argparse
 import sys
-import csv
 import re
 
 from loguru import logger
+
+import matplotlib.pyplot as plt
 
 from src.data_models.probability_map import ProbabilityMap
 from src.waypoint_generation import WaypointFactory
@@ -80,19 +83,17 @@ epilog = """
 def min_length(nmin):
     class MinLength(argparse.Action):
         def __call__(self, parser, args, values, option_string=None):
-            if not nmin <= len(values):
+            if not nmin <= len(values) and not isinstance(values[0],(SarGenOutput,WpGenOutput)):
                 msg = f"Argument \"{self.dest}\" requires at least {nmin} coordinates ({len(values)} received)"
                 parser.error(msg)
             setattr(args, self.dest, values)
     return MinLength
-
 
 def is_valid_file(parser, arg):
     if not os.path.exists(arg):
         parser.error("The file %s does not exist!" % arg)
     else:
         return os.path.abspath(arg)
-
 
 def is_valid_path_for_file(parser, arg):
     path = os.path.abspath(os.path.dirname(arg))
@@ -101,16 +102,39 @@ def is_valid_path_for_file(parser, arg):
     else:
         return os.path.abspath(arg)
 
-
-def is_valid_wps(parser, arg):
+def is_valid_wps_or_wpout_file(parser, arg):
     r = r'([0-9]+(?:\.[0-9]+)?),([0-9]+(?:\.[0-9]+)?)'
     res = re.findall(r, arg)
-    if len(res) == 0:
-        parser.error(f"Incorrect waypoint pattern in \"{arg}\"")
+    if len(res) == 0 and not os.path.isfile(arg):
+        parser.error(f"Incorrect waypoint pattern or filename in \"{arg}\"")
     else:
-        x, y = res[0]
-        return Waypoint(float(x), float(y))
+        ret = None
+        if len(res) > 0:
+            x,y = res[0]
+            ret = Waypoint(float(x),float(y))
+        else:
+            with open(arg,'r') as f:
+                ret = json.load(f,cls=GlobalJsonDecoder)
+                if not isinstance(ret,WpGenOutput):
+                   parser.error(f"Invalid file data ({type(ret)})") 
+        return ret
 
+def is_valid_sar_placements_or_file(parser,arg):
+    r = r'([0-9]+(?:\.[0-9]+)?),([0-9]+(?:\.[0-9]+)?)'
+    res = re.findall(r, arg)
+    if len(res) == 0 and not os.path.isfile(arg):
+        parser.error(f"Incorrect waypoint pattern or filename in \"{arg}\"")
+    else:
+        ret = None
+        if len(res) > 0:
+            x,y = res[0]
+            ret = Waypoint(float(x),float(y))
+        else:
+            with open(arg,'r') as f:
+                ret = json.load(f,cls=GlobalJsonDecoder)
+                if not isinstance(ret,SarGenOutput):
+                   parser.error(f"Invalid file data ({type(ret)})") 
+        return ret
 
 def setup_wp_gen_parser(parser):
     # Algorithms
@@ -137,14 +161,10 @@ def setup_wp_gen_parser(parser):
     operational = parser.add_argument_group('OPERATIONAL')
     operational.add_argument(
         "-A", "--animate", action="store_true", help="Animate calculations where possible")
-    operational.add_argument("-a", "--animate_sim",
-                             action="store_true", help="Animate simulation")
-    operational.add_argument('--sim', action='store_true', dest="simulate",
-                             help="Simulate each path with a point-mass model")
     operational.add_argument(
         "-T", "--threaded", action="store_true", help="Thread calculations where possible")
     operational.add_argument("-O", "--out_file",
-                             default="output.json",
+                             default="output_wp.json",
                              dest="out_file",
                              metavar='FILENAME',
                              help="Output file name in json format",
@@ -161,8 +181,9 @@ def setup_sar_parser(parser):
                         )
     parser.add_argument("-O", "--out_file",
                         dest="out_file",
+                        default="output_sar.json",
                         metavar='FILENAME',
-                        help="Output file name in csv format. If empty, outputs to stdout",
+                        help="Output file name in json format",
                         type=lambda x: is_valid_path_for_file(parser, x)
                         )
     parser.add_argument('-V', '--visualize',
@@ -176,29 +197,49 @@ def setup_sim_parser(parser):
                         help="Input waypoints to the simulation",
                         nargs="+",
                         action=min_length(2),
-                        type=lambda x: is_valid_wps(parser, x))
+                        type=lambda x: is_valid_wps_or_wpout_file(parser, x))
     parser.add_argument("-o", "--object_location",
                         dest='object_location',
-                        help="Input search object location. Can be multiple space seperated inputs for multiple simulations.",
+                        help=f"Input search object location. Can be multiple space seperated inputs for multiple simulations or output file from `wp`.",
                         nargs='+', 
                         action=min_length(1), 
-                        type=lambda x: is_valid_wps(parser, x))
+                        type=lambda x: is_valid_sar_placements_or_file(parser, x))
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-5', '--quintic_polynomial', action='store_true')
     group.add_argument('-F', '--fmincon', action='store_true')
+    
+    operational = parser.add_argument_group('OPERATIONAL')
+    operational.add_argument("-O", "--out_file",
+                             default="output_sim.json",
+                             dest="out_file",
+                             metavar='FILENAME',
+                             help="Output file name in json format",
+                             type=lambda x: is_valid_path_for_file(parser, x)
+                             )
 
 
 def do_wp_gen(args):
-
     #   ==================
     #   | PROB MAP SETUP |
     #   ==================
 
     prob_map = ProbabilityMap.fromPNG(args.filename)
+    prob_map_original = prob_map
     logger.trace(f"ProbabilityMap({args.filename})")
-    if args.shape is not None:
-        prob_map.lq_shape = args.shape
-  
+
+    if args.dimmensions is not None:
+        width_m,height_m = args.dimmensions
+        b = args.search_radius*2
+        if any([b<1,width_m<b,height_m<b]):
+            logger.warning(f"Values for search radius should be >1 or <dimmensions")
+
+        # We want 1 pixel to match the physical dimmensions of the search radius
+        prob_map = prob_map.resampled(int(width_m/b),int(height_m/b))
+        prob_map_original = prob_map_original.resampled(int(width_m),int(height_m))
+
+    elif args.shape is not None:
+        prob_map = prob_map.resampled(*args.shape)
+
     #   ======================
     #   | DATA STORAGE SETUP |
     #   ======================
@@ -242,39 +283,54 @@ def do_wp_gen(args):
         waypoints = WaypointFactory(
             alg, prob_map, animate=args.animate, threaded=args.threaded).generate()
 
+        if args.dimmensions is not None:
+            waypoints = waypoints.interped((prob_map.shape[1],prob_map.shape[1]),args.dimmensions)
+        else:
+            logger.warning(f"Waypoints for {alg} won't be interped as --dim was not set")
+
         # Store
         wp_gen_output.add_generated_wps(waypoints,time.time()-t,alg)
+    
+        # Animate
+        if args.animate:
+            plt.imshow(prob_map_original.toIMG())
+            plt.plot(waypoints.x, waypoints.y)
+            plt.show(block=True)
 
     #   ================
     #   | DATA STORAGE |
     #   ================
 
     with open(args.out_file, 'w') as f:
-        data = json.dumps(wp_gen_output,cls=GlobalJsonEncoder)
-        json.dump(data, f)
+        json.dump(wp_gen_output,f,cls=GlobalJsonEncoder)
+
+
 
 
 def do_sar(args):
-    #   ==================
-    #   | PROB MAP SETUP |
-    #   ==================
-
     prob_map = ProbabilityMap.fromPNG(args.filename)
     logger.trace(f"ProbabilityMap({args.filename})")
-    if args.shape is not None:
-        prob_map.lq_shape = args.shape
+    if args.dimmensions is not None:
+        width_m,height_m = args.dimmensions
+        # We want 1 pixel to match the physical dimmensions of the search radius
+        prob_map = prob_map.resampled(int(width_m),int(height_m))
+    elif args.shape is not None:
+        prob_map = prob_map.resampled(*args.shape)
+
 
     logger.info(
         f"Generating {args.num_persons} possible positions within the {prob_map.shape} area")
-    points = prob_map.place(args.num_persons, prob_map_hq=False)
+
+    sar_gen_output = SarGenOutput()
+    points = prob_map.place(args.num_persons)
+    sar_gen_output.add_generated_locations(points)
 
     outfile = sys.stdout
     if args.out_file is not None:
         outfile = open(args.out_file, 'w')
 
     logger.debug(f"Writing output from sar to {outfile.name}")
-    csvwriter = csv.writer(outfile)
-    csvwriter.writerows(points)
+    json.dump(sar_gen_output,outfile,cls=GlobalJsonEncoder)
 
     if args.visualize:
         import matplotlib.pyplot as plt
@@ -285,27 +341,38 @@ def do_sar(args):
         x, y = x.flatten(), y.flatten()
 
         points = points.toNumpyArray()
-        img_placed = np.zeros(prob_map.shape)
-        unique, counts = np.unique(
-            [f"{f[0]},{f[1]}" for f in points], return_counts=True)
-        unique = [(int(f), int(g)) for f, g in [h.split(',') for h in unique]]
 
-        for xyi, c in zip(unique, counts):
-            x, y = xyi
-            img_placed[x, y] = c
-
-        plt.imshow(prob_map.toIMG(prob_map_hq=False), interpolation=None, origin='bottom', extent=[
-                   0, prob_map.lq_shape[0], 0, prob_map.lq_shape[1]], cmap='gray')
+        img = prob_map.toIMG()
+        plt.imshow(img, 
+                    interpolation=None,
+                    cmap='gray'
+                    )
         plt.plot(points[:, 0]+0.5, points[:, 1]+0.5, 'rx')
         plt.xlabel("X")
         plt.ylabel("Y")
         plt.show()
 
-
 def do_sim(args):
-    for obj in args.object_location:
-        vehicle_sim_data = sim.simulation(args.WPS,obj).run()
-        print(vehicle_sim_data)
+
+    wp_gen_output = WpGenOutput().add_generated_wps(args.WPS,-1,WaypointAlgorithmEnum.UNKNOWN) if not isinstance(args.WPS[0],WpGenOutput) else args.WPS[0]
+    
+    placed_objs = Waypoints(args.object_location[0].data)
+    assert(all([isinstance(f, Waypoint) for f in placed_objs]))
+
+    sim_runner_output = SimRunnerOutput()
+
+    total_items = len(wp_gen_output.data)
+    c = 0
+
+    for wp_alg,data in wp_gen_output.data.items():
+        logger.trace(f"Iteration {(c:=c+1)} out of {total_items} ({100*c/total_items:.2f}%)")
+
+        wps = data['wps']
+        vehicle_sim_data = sim.Simulation(wps,placed_objs).run()
+        sim_runner_output.add_simulation_data(vehicle_sim_data,WaypointAlgorithmEnum[wp_alg.split('.')[1]])
+
+    with open(args.out_file,'w') as f:
+        json.dump(sim_runner_output,f,cls=GlobalJsonEncoder)
 
 def get_parser() -> argparse.ArgumentParser:
     #   ====================
@@ -371,17 +438,31 @@ def get_parser() -> argparse.ArgumentParser:
                                     "img", "probability_imgs", "prob_map_4_location_based.png"),
                                 help="probability map image file path"
                                 )
-    prob_map_group.add_argument("--shape",
+
+    prob_map_group.add_argument("-D","--dim",
+                                dest="dimmensions",
+                                metavar=("X", "Y"),
+                                nargs=2,
+                                type=float,
+                                help="physical dimmensions of the probability map")
+
+    mut_exc_pmap = prob_map_group.add_mutually_exclusive_group()
+    mut_exc_pmap.add_argument("--shape",
                                 dest='shape',
                                 nargs=2,
                                 metavar=('X', 'Y'),
                                 type=int,
-                                help="desired shape of the probability map"
+                                help="desired shape of the probability map (don't use for physically accurate calculations)"
+                                )
+    mut_exc_pmap.add_argument("-S","--search_radius",
+                                dest='search_radius',
+                                type=float,
+                                help="search radius of drone's sensors [ b = h tan(theta) ]"
                                 )
 
     # Logging
     parser.add_argument("-v", dest='log_level',
-                        help="Log level", action='count', default=0)
+                        help="Log level", action='count', default=2)
 
     return parser, wp_aliases, sar_aliases, sim_aliases
 
@@ -394,8 +475,11 @@ if __name__ == "__main__":
         args = parser.parse_args()
     else:
         # '-I img/probability_imgs/prob_map_4_location_based.png -vvv sar -n 200 -V'.split())
-        args = parser.parse_args("-vvv --shape 5 5 wp -S".split())
+        args = parser.parse_args("-vvv -I img/probability_imgs/prob_map_8_jackton.png -D 422.3175926525146 438.6246933788061 -S 15 wp -P --solver fmincon -T -A".split())
 
+#   ==============================
+#   | CHECK ARGS (error on fail) |
+#   ==============================
 
 #   ================
 #   | LOGGER SETUP |
@@ -415,6 +499,16 @@ if __name__ == "__main__":
     logger.info("Welcome to \n"+header_main)
     logger.debug(f'Log level set to {log_level}')
     logger.trace(args)
+
+
+#   ==============================
+#   | CHECK ARGS (warn on fail) |
+#   ==============================
+    
+    if args.search_radius is None:
+        logger.warning("Search radius not given. Defaulting to 0.5")
+        args.search_radius = 0.5
+
 
 
 #   ========
