@@ -1,12 +1,9 @@
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy.core.fromnumeric import var
-from numpy.core.records import array
 from src.simulation.parameters import *
 from src.data_models.positional.pose import Pose, Poses
 from src.data_models.positional.angle import Yaw
-from typing import List
 
 class Vehicle:
     def __init__(self, pos=Pose.zero(), dpos=Pose.zero(), ddpos=Pose.zero(), des_yaw:float=0, animate:bool=False):
@@ -64,12 +61,6 @@ class Vehicle:
             self._plot()
 
     def _store(self) -> None:
-        # self.data['pos']['x'].append(self.pos.x.item())
-        # self.data['pos']['y'].append(self.pos.y.item())
-        # self.data['dpos']['x'].append(self.dpos.x.item())
-        # self.data['dpos']['y'].append(self.dpos.y.item())
-        # self.data['ddpos']['x'].append(self.ddpos.y.item())
-        # self.data['ddpos']['y'].append(self.ddpos.x.item())
         self.data.update(self.t, self.pos, self.dpos, self.ddpos)
 
     def _plot(self) -> None:
@@ -83,23 +74,19 @@ class Vehicle:
 
         plt.pause(0.1)
 
-    @property
-    def end_sim(self) -> bool:
-        return self.data.t_found is not None
-
 class VehicleSimData:
     def __init__(self) -> None:
         self.t = []
-        self.t_found = None
+        self.found = []
         self.pos = Poses()
         self.dpos = Poses()
         self.ddpos = Poses()
 
     def update(self, t, pos, dpos, ddpos):
-        self.t.append(t)
-        self.pos.add(pos)
-        self.dpos.add(dpos)
-        self.ddpos.add(ddpos)
+        self.t.append(np.copy(t))
+        self.pos.add(np.copy(pos))
+        self.dpos.add(np.copy(dpos))
+        self.ddpos.add(np.copy(ddpos))
 
     def __str__(self) -> str:
         return f"VehicleSimData({self.__dict__})"
