@@ -43,7 +43,7 @@ class MatlabHelper:
         logger.debug(f"Starting {matlab.engine}")
         self.eng = matlab.engine.start_matlab()
         logger.debug(f"{matlab.engine} instance at {self.eng}")
-
+    
     @property
     def kwargs(self) -> dict:
         return {}#'stdout':StdOut(), 'stderr':StdErr()} TODO: Make this work!
