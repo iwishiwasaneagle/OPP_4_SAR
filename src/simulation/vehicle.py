@@ -6,23 +6,13 @@ from src.data_models.positional.pose import Pose, Poses
 from src.data_models.positional.angle import Yaw
 
 class Vehicle:
-    def __init__(self, pos=Pose.zero(), dpos=Pose.zero(), ddpos=Pose.zero(), des_yaw:float=0, animate:bool=False):
+    def __init__(self, pos=Pose.zero(), dpos=Pose.zero(), ddpos=Pose.zero(), des_yaw:float=0):
         self.pos = pos
         self.dpos = dpos
         self.ddpos = ddpos
         self.t = 0
 
-        self.animate = animate
-
         self.data = VehicleSimData()
-
-        if self.animate:
-            plt.ion()
-            fig = plt.figure()
-            fig.canvas.mpl_connect('key_release_event',
-                    lambda event: [exit(0) if event.key == 'escape' else None])
-
-            self._ax = fig.add_subplot(111)
 
     @property
     def yaw(self):
@@ -56,23 +46,10 @@ class Vehicle:
         self._store()
 
         self.t += dt
-        
-        if self.animate:
-            self._plot()
 
     def _store(self) -> None:
         self.data.update(self.t, self.pos, self.dpos, self.ddpos)
 
-    def _plot(self) -> None:
-        plt.cla()
-
-        self._ax.add_artist(plt.Circle((self.pos.x, self.pos.y), size, color='r'))
-        self._ax.plot(self.data.pos.x, self.data.pos.y, 'b:')       
-
-        plt.xlim(self.pos.x-10,self.pos.x+10)
-        plt.ylim(self.pos.y-10,self.pos.y+10)
-
-        plt.pause(0.1)
 
 class VehicleSimData:
     def __init__(self) -> None:

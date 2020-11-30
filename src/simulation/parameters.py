@@ -3,7 +3,7 @@ repeat = True
 
 # Simulation parameters
 g = 9.81
-m = 0.2
+m = 7 
 size = 0.25
 dt = 0.01
 

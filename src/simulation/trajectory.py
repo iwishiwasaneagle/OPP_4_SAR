@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 from src.data_models.positional.waypoint import Waypoint, Waypoints
 from src.data_models.positional.pose import Pose
@@ -95,3 +96,26 @@ class Trajectory:
     def position(self, t: float) -> Pose:
         calc = lambda c,t: c[0] * t**5 + c[1] * t**4 + c[2] * t**3 + c[3] * t**2 + c[4] * t + c[5]
         return Pose(calc(self.coeffs['x'], t), calc(self.coeffs['y'], t))
+
+
+if __name__ == "__main__":
+    T = 5
+    t = np.linspace(0,T)
+    traj = Trajectory(Waypoint.zero(),Waypoint(5,5),T=T)
+
+    y = []
+    dy = []
+    ddy = []
+    x = []
+
+    for ti in t:
+        y.append(traj.position(ti))
+        dy.append(traj.velocity(ti))
+        ddy.append(traj.acceleration(ti))
+        x.append(ti)
+
+    plt.plot(x,y)
+    plt.plot(x,dy)
+    plt.plot(x,ddy)
+    plt.show()
+
