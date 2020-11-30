@@ -6,8 +6,8 @@ from typing import Type, TypeVar
 T = TypeVar('T', bound='Pose')
 
 class Pose(AbstractPositionDataObject):
-    def __init__(self, x: float, y: float) -> None:
-        super().__init__(x,y)
+    def __init__(self,*args) -> None:
+        super().__init__(*args)
     
     @staticmethod
     def zero() -> T:

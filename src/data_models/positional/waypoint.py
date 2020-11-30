@@ -9,7 +9,7 @@ class Waypoints(AbstractListObject):
     def __init__(self, *args):
         if len(args)>0 and isinstance(args[0], Waypoints):
             self.__dict__.update(args[0].__dict__)
-        elif len(args) == 1 and isinstance(args[0], (list,np.ndarray)) and all([len(f)==2 for f in args[0]]):
+        elif len(args) == 1 and isinstance(args[0], (list,tuple,np.ndarray)) and all([len(f)==2 for f in args[0]]):
             super().__init__(*[Waypoint(f[0],f[1]) for f in args[0]])
         else:
             super().__init__(*args)
@@ -60,3 +60,9 @@ class Waypoint(AbstractPositionDataObject):
     @classmethod
     def zero(cls):
         return cls(0,0)
+
+    def __str__(self) -> str:
+        return f"Waypoint({self.x},{self.y})"
+
+    def __repr__(self) -> str:
+        return self.__str__()

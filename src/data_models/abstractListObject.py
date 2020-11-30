@@ -9,11 +9,8 @@ class AbstractListObject(ABC):
             args = args[0]   
         self.items: List = [f for f in args]
 
-    def __getitem__(self,key: int) -> T:
-        if key<self.__len__():
-            return self.items[key]
-        else:
-            raise IndexError()
+    def __getitem__(self,key) -> T:
+        return self.items.__getitem__(key)
 
     def __iter__(self) -> T:
         self._n = 0

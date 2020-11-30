@@ -12,13 +12,13 @@ class AbstractPoseDataObject(ABC):
         elif len(args) == 2 and all([isinstance(f,(list,np.ndarray)) and len(f)==1 for f in args]):
             a = args[0][0]
             b = args[1][0]
-        elif len(args) == 1 and isinstance(args[0],(tuple, list)):
+        elif len(args) == 1 and isinstance(args[0],(tuple, list,np.ndarray)):
             a,b = args[0]
         else:
             a,b,=0,0
         if None in (a,b): raise Exception()
-        self._a = a
-        self._b = b
+        self._a = float(a)
+        self._b = float(b)
     def __str__(self):
         return f"{type(self)}:({self._a},{self._b})"
     
