@@ -9,11 +9,13 @@ from loguru import logger
 T = TypeVar("T", bound="WaypointFactory")
 
 class WaypointFactory:
-    def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, animate: bool=False, threaded: bool=True):
+    def __init__(self, alg: WaypointAlgorithmEnum, prob_map: ProbabilityMap, home:Waypoint,animate: bool=False, threaded: bool=True):
         
         self.alg = alg
 
         self.prob_map = prob_map
+
+        self.home = home
 
         assert(isinstance(threaded, bool))
         self.threaded = threaded
@@ -30,7 +32,7 @@ class WaypointFactory:
 
         if self.alg == WaypointAlgorithmEnum.LHC_GW_CONV:
             from src.waypoint_generation.LHC_GW_CONV import LHC_GW_CONV
-            waypoints = LHC_GW_CONV(**kwargs).waypoints
+            waypoints = LHC_GW_CONV(home_wp=self.home,**kwargs).waypoints
            
         elif self.alg == WaypointAlgorithmEnum.MODIFIED_LAWNMOWER:
             from src.waypoint_generation.modified_lawnmower import ModifiedLawnmower
@@ -50,7 +52,7 @@ class WaypointFactory:
             elif self.alg == WaypointAlgorithmEnum.PABO_PARTICLESWARM:
                 kwargs['solver'] = PABOSolverEnum.PARTICLESWARM
             
-            waypoints = PABO(**kwargs).waypoints
+            waypoints = PABO(home=self.home,**kwargs).waypoints
 
         assert(isinstance(waypoints, Waypoints))
         logger.info(f"{len(waypoints)} waypoints generated with distance = {waypoints.dist:.2f} units")

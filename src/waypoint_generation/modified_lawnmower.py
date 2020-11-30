@@ -119,15 +119,12 @@ class ModifiedLawnmower(BaseWPGenerator):
         # return cost
         # 11.6s
 
-
-
-
     def __normalize_columns_in_pm(self) -> ProbabilityMap:
         # Map from 0->1 to 0->3
         prob_map = np.interp(self.prob_map.prob_map,(0,np.max(self.prob_map.prob_map)),(0,3))
 
         # Iterate over columns
-        for i in range(prob_map.shape[0]):
+        for i in range(prob_map.shape[1]):
             prob_map[:,i] = np.mean(prob_map[:,i])
 
         # Round to int

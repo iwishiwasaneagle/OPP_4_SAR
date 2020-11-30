@@ -19,13 +19,13 @@ class CostFunc:
             *[os.getcwd()] + self.__module__.split('.')[:-1]))
         self.settings = WaypointAlgSettings.Global()
 
-    def calculate(self, path: Waypoints, prob_map: ProbabilityMap) -> float:
+    def calculate(self, path: Waypoints, prob_map: ProbabilityMap, search_radius: float = 0.5) -> float:
         assert(isinstance(path, Waypoints))
         assert(isinstance(prob_map, ProbabilityMap))
         mdouble_path = mdouble(path.toNumpyArray().tolist())
+        mdouble_home_wp = mdouble([-1,-1])
         mdouble_prob_map = mdouble(prob_map.prob_map.tolist())
-        mdouble_search_radius = mdouble([self.settings.search_radius])
-
+        mdouble_search_radius = mdouble([search_radius])
         out = self.mat_eng.eng.cost_func(
-            mdouble_path, mdouble_prob_map, mdouble_search_radius, mdouble([-1]), mdouble([0]), mdouble([1]))
+            mdouble_path,mdouble_home_wp, mdouble_prob_map, mdouble_search_radius, mdouble([-1]), mdouble([0]), mdouble([1]))
         return out

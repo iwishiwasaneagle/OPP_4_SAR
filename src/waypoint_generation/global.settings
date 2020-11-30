@@ -1,5 +1,5 @@
 {
-   "unit_endurance":80,
-   "start_wp":[0,0],
+   "unit_endurance":30,
+   "home_wp":[14.077253088417153, 14.620823112626871],
    "search_radius":0.5
 }

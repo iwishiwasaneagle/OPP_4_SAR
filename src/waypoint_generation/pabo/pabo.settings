@@ -1,6 +1,5 @@
 {
     "unit_endurance_miss_const": 1,
     "prob_accum_const": 500,
-    "wp_count":16,
-    "pabo_solver": "FMINCON"
+    "wp_count":6
 }

@@ -19,7 +19,7 @@ from loguru import logger
 
 
 class PABO(BaseWPGenerator):
-    def __init__(self,**kwargs):
+    def __init__(self,home:Waypoint,**kwargs):
         if 'solver' in kwargs and isinstance(kwargs['solver'], PABOSolverEnum):
             self.solver = kwargs.pop('solver')
 
@@ -28,6 +28,8 @@ class PABO(BaseWPGenerator):
         self.mat_eng = MatlabHelper.instance()
         path = os.path.join(os.getcwd(),'src', 'waypoint_generation')
         self.mat_eng.eng.addpath(os.path.join(path,'pabo'),**self.mat_eng.kwargs)
+
+        self.home = home
         
         self.settings = WaypointAlgSettings.PABO()
         self.wp_count = self.settings.wp_count
@@ -42,14 +44,19 @@ class PABO(BaseWPGenerator):
     
     @property
     def waypoints(self) -> Waypoints:
-        mdouble_wp_count = mdouble([self.wp_count])
-        mdouble_prob_map = mdouble(self.prob_map.lq_prob_map.tolist())
+        mdouble_wp_count = mdouble([self.wp_count-2])
+        mdouble_prob_map = mdouble(self.prob_map.prob_map.tolist())
+        mdouble_home_wp = mdouble([self.home.x,self.home.y])
         solver_str = str(self.solver).split(".")[1].lower()
-        
+
+        # self.mat_eng.eng.eval("dbstop in pabo.m at 48",nargout=0)
+         # self.mat_eng.eng.eval("dbstop in pabo.m at 12",nargout=0)
+
         logger.trace("Pre-matlab")      
         x = self.mat_eng.eng.pabo(
             solver_str,
             mdouble_wp_count,
+            mdouble_home_wp,
             mdouble_prob_map,
             mdouble([self.sweep_radius]),
             mdouble([self.settings.unit_endurance]),
@@ -58,18 +65,5 @@ class PABO(BaseWPGenerator):
             mbool([self.animate]),
             **self.mat_eng.kwargs)
         logger.trace("Post-matlab")
-         
-        return Waypoints([list(f) for f in x])
-
-        # r = 0.9*min(self.prob_map.shape[0],self.prob_map.shape[1])/2
-        # x0 = [(r+r*np.cos(theta), r+r*np.sin(theta)) for theta in np.arange(0,2*np.pi,2*np.pi/self.wp_count)]
-        # x0.append(x0[0])
-        # x0_store = np.array(x0)
-        # x0 = np.reshape(x0,np.shape(x0)[0]*np.shape(x0)[1])
-
-        # res = sco.minimize(self.cost_func,x0,args=(self.prob_map, self.sweep_width),method='Nelder-Mead',options={'maxiter':10000000})
-
-        # min_x = np.reshape(res.x,(len(res.x)//2,2))
-        # tmp = [self.prob_map.hq_to_lq_coords(f) for f in min_x]
-        # min_x = [Waypoint(g[0],g[1]) for g in tmp]
-        # return Waypoints(min_x)
+     
+        return Waypoints([self.home]+[list(f) for f in x]+[self.home])

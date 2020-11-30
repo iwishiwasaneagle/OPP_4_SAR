@@ -35,8 +35,8 @@ class WPSettingsDecoder(json.JSONDecoder):
         updates = {}
         if 'pabo_solver' in dct:
             updates['pabo_solver'] = PABOSolverEnum[dct['pabo_solver'].upper()]                    
-        if 'start_wp' in dct:
-            updates['start_wp'] = Waypoint(dct['start_wp'])
+        if 'home_wp' in dct:
+            updates['home_wp'] = Waypoint(dct['home_wp'])
         dct.update(updates)
         return dct
 

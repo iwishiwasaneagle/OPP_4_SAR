@@ -40,12 +40,14 @@ class ConvolutionResult:
         else :         raise IndexError(f"{key} > 2")
 
 class LHC_GW_CONV(BaseWPGenerator):
-    def __init__(self, **kwargs):
+    def __init__(self,home_wp:Waypoint=Waypoint.zero(), **kwargs):
         super().__init__(**kwargs)
 
         self.settings = WaypointAlgSettings.LHC_GW_CONV()
 
         self.search_threshold = 0
+
+        self.home_wp = home_wp
 
         if self.animate:
             plt.ion()
@@ -94,7 +96,7 @@ class LHC_GW_CONV(BaseWPGenerator):
 
         best_l = None
         best_wps = None
-        best_prob = 0
+        best_prob = -np.inf
         for key in return_dict:
             l = key
             wps = return_dict[key]
@@ -110,7 +112,7 @@ class LHC_GW_CONV(BaseWPGenerator):
 
     def LHC_CONV(self,l=0, ret_dict: dict={}) -> Waypoints:
         logger.debug(f"({l}) Starting LHC_CONV with l={l}")
-        wps = [self.settings.start_wp]
+        wps = [self.home_wp]
         accumulator = 0
         visited = Waypoints([])
 
@@ -171,6 +173,8 @@ class LHC_GW_CONV(BaseWPGenerator):
             visited.add(best)
            
         logger.debug(f"({l}) Completed in {time.time()-t:.3f}s with local score {accumulator:.4f} and {conflicts} conflicts", enqueue=True)
+        
+        wps.append(self.home_wp)
 
         wps = Waypoints([Waypoint(f.x+0.5, f.y+0.5) for f in wps]) # Bring the coord into the center of the square
 
