@@ -1,4 +1,6 @@
 import PIL
+from numpy.lib.arraysetops import isin
+from numpy.lib.function_base import place
 from src.json_helpers import GlobalJsonDecoder, GlobalJsonEncoder
 from src.simulation.simulation import SimRunnerOutput
 from src.waypoint_generation.waypoint_settings import SarGenOutput, WpGenOutput
@@ -136,7 +138,7 @@ def is_valid_sar_placements_or_file(parser,arg):
                    parser.error(f"Invalid file data ({type(ret)})") 
         return ret
 
-def setup_wp_gen_parser(parser):
+def setup_wp_gen_parser(parser) -> None:
     # Algorithms
     lhc_gw_conv_group = parser.add_argument_group('LHC_GW_CONV')
     lhc_gw_conv_group.add_argument(
@@ -159,6 +161,8 @@ def setup_wp_gen_parser(parser):
 
     # Operational
     operational = parser.add_argument_group('OPERATIONAL')
+    operational.add_argument('--home',
+        type=float,nargs=2,default=(-1,-1),help="Home for the paths. Defaults to no home.")
     operational.add_argument(
         "-A", "--animate", action="store_true", help="Animate calculations where possible")
     operational.add_argument(
@@ -171,8 +175,7 @@ def setup_wp_gen_parser(parser):
                              type=lambda x: is_valid_path_for_file(parser, x)
                              )
 
-
-def setup_sar_parser(parser):
+def setup_sar_parser(parser) -> None:
     parser.add_argument('-n',
                         help="The amount of persons placed on the map",
                         type=int,
@@ -191,8 +194,7 @@ def setup_sar_parser(parser):
                         help="Visualize the output before quiting (requires matplotlib)",
                         action="store_true")
 
-
-def setup_sim_parser(parser):
+def setup_sim_parser(parser) -> None:
     parser.add_argument('WPS',
                         help="Input waypoints to the simulation",
                         nargs="+",
@@ -207,6 +209,8 @@ def setup_sim_parser(parser):
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-5', '--quintic_polynomial', action='store_true')
     group.add_argument('-F', '--fmincon', action='store_true')
+
+    parser.add_argument('--flight_speed',help="Mean flight speed of the point mass (m/s)",default=1.0,type=float)
     
     operational = parser.add_argument_group('OPERATIONAL')
     operational.add_argument("-O", "--out_file",
@@ -216,7 +220,10 @@ def setup_sim_parser(parser):
                              help="Output file name in json format",
                              type=lambda x: is_valid_path_for_file(parser, x)
                              )
-
+    operational.add_argument(
+        "-A", "--animate", action="store_true", help="Animate calculations where possible")
+    
+    
 
 def do_wp_gen(args):
     #   ==================
@@ -233,12 +240,14 @@ def do_wp_gen(args):
         if any([b<1,width_m<b,height_m<b]):
             logger.warning(f"Values for search radius should be >1 or <dimmensions")
 
+        args.home = [f/b for f in args.home]
         # We want 1 pixel to match the physical dimmensions of the search radius
         prob_map = prob_map.resampled(int(width_m/b),int(height_m/b))
         prob_map_original = prob_map_original.resampled(int(width_m),int(height_m))
 
     elif args.shape is not None:
         prob_map = prob_map.resampled(*args.shape)
+        args.home = (-1,-1) # TODO implement properly
 
     #   ======================
     #   | DATA STORAGE SETUP |
@@ -281,19 +290,22 @@ def do_wp_gen(args):
 
         # Gen WPS
         waypoints = WaypointFactory(
-            alg, prob_map, animate=args.animate, threaded=args.threaded).generate()
+            alg, prob_map, animate=args.animate, threaded=args.threaded,home=Waypoint(args.home)).generate()
 
         if args.dimmensions is not None:
-            waypoints = waypoints.interped((prob_map.shape[1],prob_map.shape[1]),args.dimmensions)
-        else:
-            logger.warning(f"Waypoints for {alg} won't be interped as --dim was not set")
+            waypoints = waypoints.interped((prob_map.shape[1],prob_map.shape[0]),args.dimmensions)  
+#        else:
+#            waypoints = waypoints.interped((prob_map.shape[1],prob_map.shape[0]),prob_map_original.shape)
 
         # Store
         wp_gen_output.add_generated_wps(waypoints,time.time()-t,alg)
     
         # Animate
         if args.animate:
-            plt.imshow(prob_map_original.toIMG())
+            img = prob_map.toIMG()
+            if args.dimmensions is not None:
+                img = prob_map_original.toIMG()
+            plt.imshow(img)
             plt.plot(waypoints.x, waypoints.y)
             plt.show(block=True)
 
@@ -303,9 +315,6 @@ def do_wp_gen(args):
 
     with open(args.out_file, 'w') as f:
         json.dump(wp_gen_output,f,cls=GlobalJsonEncoder)
-
-
-
 
 def do_sar(args):
     prob_map = ProbabilityMap.fromPNG(args.filename)
@@ -354,9 +363,12 @@ def do_sar(args):
 
 def do_sim(args):
 
-    wp_gen_output = WpGenOutput().add_generated_wps(args.WPS,-1,WaypointAlgorithmEnum.UNKNOWN) if not isinstance(args.WPS[0],WpGenOutput) else args.WPS[0]
+    wp_gen_output = WpGenOutput([]).add_generated_wps(Waypoints(args.WPS),-1,WaypointAlgorithmEnum.UNKNOWN) if not isinstance(args.WPS[0],WpGenOutput) else args.WPS[0]
     
-    placed_objs = Waypoints(args.object_location[0].data)
+    if isinstance(args.object_location[0],SarGenOutput):
+        placed_objs = Waypoints(args.object_location[0].data)
+    else:
+        placed_objs = Waypoints(args.object_location)
     assert(all([isinstance(f, Waypoint) for f in placed_objs]))
 
     sim_runner_output = SimRunnerOutput()
@@ -368,7 +380,7 @@ def do_sim(args):
         logger.trace(f"Iteration {(c:=c+1)} out of {total_items} ({100*c/total_items:.2f}%)")
 
         wps = data['wps']
-        vehicle_sim_data = sim.Simulation(wps,placed_objs).run()
+        vehicle_sim_data = sim.Simulation(wps,placed_objs,args.search_radius,args.flight_speed,args.animate).run()
         sim_runner_output.add_simulation_data(vehicle_sim_data,WaypointAlgorithmEnum[wp_alg.split('.')[1]])
 
     with open(args.out_file,'w') as f:
@@ -462,10 +474,9 @@ def get_parser() -> argparse.ArgumentParser:
 
     # Logging
     parser.add_argument("-v", dest='log_level',
-                        help="Log level", action='count', default=2)
+                        help="Log level", action='count', default=1)
 
     return parser, wp_aliases, sar_aliases, sim_aliases
-
 
 if __name__ == "__main__":
 
@@ -475,7 +486,8 @@ if __name__ == "__main__":
         args = parser.parse_args()
     else:
         # '-I img/probability_imgs/prob_map_4_location_based.png -vvv sar -n 200 -V'.split())
-        args = parser.parse_args("-vvv -I img/probability_imgs/prob_map_8_jackton.png -D 422.3175926525146 438.6246933788061 -S 15 wp -P --solver fmincon -T -A".split())
+        args = parser.parse_args("-vvv -I img/probability_imgs/prob_map_8_jackton.png --dim 422 439 -S 15 sim output_wp.json -o output_sar.json --flight_speed 1".split())
+        #"-vvv -I img/probability_imgs/prob_map_8_jackton.png -D 422.3175926525146 438.6246933788061 -S 5 wp -LMSP --solver fmincon ga particleswarm -T --home 211.1587963262573 219.31234668940306".split())
 
 #   ==============================
 #   | CHECK ARGS (error on fail) |
