@@ -81,4 +81,4 @@ class ProbabilityMap:
             raise KeyError(f"Type {type(key)} is not valid")
 
     def __len__(self):
-        return self.shape[0]*self.shape[1]
+        return len(self.prob_map) 
