@@ -305,6 +305,7 @@ def do_wp_gen(args):
             img = prob_map.toIMG()
             if args.dimmensions is not None:
                 img = prob_map_original.toIMG()
+            plt.figure(1)
             plt.imshow(img)
             plt.plot(waypoints.x, waypoints.y)
             plt.show(block=True)
@@ -377,6 +378,7 @@ def do_sim(args):
     c = 0
 
     for wp_alg,data in wp_gen_output.data.items():
+        logger.info(f"Simulating {wp_alg}")
         logger.trace(f"Iteration {(c:=c+1)} out of {total_items} ({100*c/total_items:.2f}%)")
 
         wps = data['wps']
@@ -486,8 +488,8 @@ if __name__ == "__main__":
         args = parser.parse_args()
     else:
         # '-I img/probability_imgs/prob_map_4_location_based.png -vvv sar -n 200 -V'.split())
-        args = parser.parse_args("-vvv -I img/probability_imgs/prob_map_8_jackton.png --dim 422 439 -S 15 sim output_wp.json -o output_sar.json --flight_speed 1".split())
-        #"-vvv -I img/probability_imgs/prob_map_8_jackton.png -D 422.3175926525146 438.6246933788061 -S 5 wp -LMSP --solver fmincon ga particleswarm -T --home 211.1587963262573 219.31234668940306".split())
+        #"-vvv -I img/probability_imgs/prob_map_8_jackton.png --dim 422 439 -S 15 sim output_wp.json -o 5,5 10,10 -O /tmp/output_sar.json --flight_speed 1 -A".split())
+        args = parser.parse_args("-vvv -I img/probability_imgs/prob_map_8_jackton.png -D 422.3175926525146 438.6246933788061 -S 15 wp -LMS --solver fmincon ga particleswarm -T --home 211.1587963262573 219.31234668940306".split())
 
 #   ==============================
 #   | CHECK ARGS (error on fail) |
