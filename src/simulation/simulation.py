@@ -69,7 +69,7 @@ class Simulation:
             rBC = c-b
             rAC_unit = rAC/np.clip(np.linalg.norm(rAC),1e-6,np.inf) 
             theta = rBA.dot(rBC)/(np.linalg.norm(rBA)*np.linalg.norm(rBC))
-            chi = (1-theta)/2
+            chi = np.power((1-theta)/2,3)
             vB = Pose(self.mean_flight_speed*rAC_unit*chi)
             bounds.append((wp_b,vB))
         bounds.append((self.waypoints[-1],Pose.zero()))
@@ -90,7 +90,8 @@ class Simulation:
             self.trajectories.add(trajectory)
 
         t = 0
-        for trajectory in self.trajectories:
+        for i,trajectory in enumerate(self.trajectories):
+            logger.trace(f"Trajectory {i} out of {len(self.trajectories)}. T={trajectory.T:.2f}s")
             t_local = 0
             while t_local <= trajectory.T:
                 # Search for object
@@ -121,7 +122,7 @@ class Simulation:
                 t_local += dt
                 t += dt
         
-                if self.animate:
+                if t_local==dt and self.animate:
                     self._plot()
 
         logger.info(
@@ -149,7 +150,7 @@ class Simulation:
         
         fig.set_ylabel("y ($m$)")
         fig.set_xlabel("x ($m$)")
-        fig.text(0.1,0.9,f"t=${self.vehicle.t:.2}s$",ha='center', va='center', transform=fig.transAxes) 
+        fig.text(0.1,0.9,f"t=${self.vehicle.t:.2f}s$",ha='center', va='center', transform=fig.transAxes) 
         
         fig = self._ax_xy
         fig.cla()
@@ -185,4 +186,4 @@ class Simulation:
         fig.plot(self.vehicle.data.t,mag,label=r'$|\ddot \vec p|$')
         fig.legend()
 
-        plt.pause(0.001)
+        plt.pause(0.0001)

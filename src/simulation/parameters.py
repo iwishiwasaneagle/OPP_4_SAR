@@ -5,7 +5,7 @@ repeat = True
 g = 9.81
 m = 7 
 size = 0.25
-dt = 0.01
+dt = 0.1
 
 # Map size
 n = 200
