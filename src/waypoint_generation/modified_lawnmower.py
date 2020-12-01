@@ -60,10 +60,6 @@ class ModifiedLawnmower(BaseWPGenerator):
                 p_opt = perm
 
             c+=1
-            if c==1 or c%10000==0:
-                string = f"{100*float(c)/(N_perms if N_perms<max_iter else max_iter):.2f}% after {time.time()-t0:.1f}s and {c}/{N_perms if N_perms<max_iter else max_iter} iterations | p_cur={perm} with cost={cost}"
-                print(string,file=sys.stderr,end='\r')
-
             if c%10000==0:
                 perm_iter = itertools.permutations(np.random.permutation(arr_to_perm))
 

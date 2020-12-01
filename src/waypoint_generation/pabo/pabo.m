@@ -1,5 +1,5 @@
 function [x] = pabo(optim_alg,wps,home_wp,prob_map,radius,unit_endurance,unit_endurance_miss_const,prob_accum_const,show_graphs)
-print("Start of PABO")
+disp("Start of PABO")
 
 rng default
 
@@ -26,9 +26,9 @@ if optim_alg == "fmincon"
     if show_graphs
         options = optimoptions(options, 'PlotFcn', {@optimplotfval,@optimplotfunccount});
     end
-    print("Starting fmincon")
+    disp("Starting fmincon")
     [x,end_cost,~,~] = fmincon(@(x) cost_func(x,home_wp,prob_map,radius,unit_endurance,unit_endurance_miss_const,prob_accum_const),x0,[],[],[],[],lb,ub,[],options);
-    print(strcat("Finished fmincon with end_cost=",num2str(end_cost)))
+    disp(strcat("Finished fmincon with end_cost=",num2str(end_cost)))
     
 elseif optim_alg == "ga"
     lb = reshape(lb',wps*2,1);
@@ -38,9 +38,9 @@ elseif optim_alg == "ga"
     if show_graphs
         options = optimoptions(options,'PlotFcn',{@gaplotbestf});
     end
-    print("Starting GA")
+    disp("Starting GA")
     [x,end_cost,exitflag,output] = ga(@(x) cost_func_ga(x,home_wp,prob_map,radius,unit_endurance,unit_endurance_miss_const,prob_accum_const),wps*2,[],[],[],[],lb,ub,[],options);
-    print(strcat("Finished GA with end_cost=",num2str(end_cost)))
+    disp(strcat("Finished GA with end_cost=",num2str(end_cost)))
     x = reshape(x,[wps,2]);
 else
     lb = reshape(lb',wps*2,1);
@@ -50,9 +50,9 @@ else
     if show_graphs 
         options = optimoptions(options,'PlotFcn',{@pswplotbestf});
     end
-    print("Starting particleswarm")
+    disp("Starting particleswarm")
     [x,end_cost,exitflag,output] = particleswarm(@(x) cost_func_ga(x,home_wp,prob_map,radius,unit_endurance,unit_endurance_miss_const,prob_accum_const),wps*2,lb,ub,options);
-    print(strcat("Finished particleswarm with end_cost=",num2str(end_cost)))
+    disp(strcat("Finished particleswarm with end_cost=",num2str(end_cost)))
     x = reshape(x,[wps,2]);
 end
 toc

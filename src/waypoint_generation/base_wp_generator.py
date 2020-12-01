@@ -14,7 +14,7 @@ class BaseWPGenerator(ABC):
 
         self.settings =  WaypointAlgSettings.Global()
         self.threaded = threaded
-        self.animate = not self.threaded and animate
+        self.animate = animate
         self.prob_map = prob_map 
         
         if self.animate:

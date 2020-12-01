@@ -52,7 +52,7 @@ class PABO(BaseWPGenerator):
         # self.mat_eng.eng.eval("dbstop in pabo.m at 48",nargout=0)
          # self.mat_eng.eng.eval("dbstop in pabo.m at 12",nargout=0)
 
-        logger.trace("Pre-matlab")      
+        logger.trace(f"Pre-matlab (animate={mbool([self.animate])})")      
         x = self.mat_eng.eng.pabo(
             solver_str,
             mdouble_wp_count,

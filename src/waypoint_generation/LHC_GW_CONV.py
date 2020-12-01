@@ -49,14 +49,7 @@ class LHC_GW_CONV(BaseWPGenerator):
 
         self.home_wp = home_wp
 
-        if self.animate:
-            plt.ion()
-            fig = plt.figure(1)
-            # for stopping simulation with the esc key.
-            fig.canvas.mpl_connect('key_release_event',
-                    lambda event: [exit(0) if event.key == 'escape' else None])
-            self._ax = fig.add_subplot(111)
-
+        self.animate = self.animate and not self.threaded
     @property
     def waypoints(self):
         return self.GW()
