@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+
+__author__ = "Jan-Hendrik Ewers"
+__copyright__ = "Copyright 2020, Jan-Hendrik Ewers"
+__credits__ = ["Jan-Hendrik Ewers"]
+__license__ = "GPL"
+__version__ = "3.0.0"
+__maintainer__ = "Jan-Hendrik Ewers"
+__email__ = "jh.ewers@gmail.com"
+__status__ = "prototype"
+
+
 import PIL
 from numpy.lib.arraysetops import isin
 from numpy.lib.function_base import place
