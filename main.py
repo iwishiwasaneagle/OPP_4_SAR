@@ -9,10 +9,8 @@ __maintainer__ = "Jan-Hendrik Ewers"
 __email__ = "jh.ewers@gmail.com"
 __status__ = "prototype"
 
-
-import PIL
-from numpy.lib.arraysetops import isin
-from numpy.lib.function_base import place
+import functools
+import multiprocessing
 from src.json_helpers import GlobalJsonDecoder, GlobalJsonEncoder
 from src.simulation.simulation import SimRunnerOutput
 from src.waypoint_generation.waypoint_settings import SarGenOutput, WpGenOutput
@@ -21,13 +19,13 @@ from src.data_models.positional.waypoint import Waypoint, Waypoints
 import src.simulation.simulation as sim
 from src.simulation.parameters import *
 
-import numpy as np
 import json
 import time
 import os
 import argparse
 import sys
 import re
+os.environ['OPP4SAR_DIR'] = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 from loguru import logger
 
@@ -232,11 +230,12 @@ def setup_sim_parser(parser) -> None:
                              help="Output file name in json format",
                              type=lambda x: is_valid_path_for_file(parser, x)
                              )
-    operational.add_argument(
+    group = operational.add_mutually_exclusive_group()
+    group.add_argument(
+        "-T", "--threaded", action="store_true", help="Thread calculations where possible")
+    group.add_argument(
         "-A", "--animate", action="store_true", help="Animate calculations where possible")
     
-    
-
 def do_wp_gen(args):
     #   ==================
     #   | PROB MAP SETUP |
@@ -252,14 +251,14 @@ def do_wp_gen(args):
         if any([b<1,width_m<b,height_m<b]):
             logger.warning(f"Values for search radius should be >1 or <dimmensions")
 
-        args.home = [f/b for f in args.home]
+        args.home = Waypoint([f/b for f in args.home])
         # We want 1 pixel to match the physical dimmensions of the search radius
         prob_map = prob_map.resampled(int(width_m/b),int(height_m/b))
         prob_map_original = prob_map_original.resampled(int(width_m),int(height_m))
 
     elif args.shape is not None:
         prob_map = prob_map.resampled(*args.shape)
-        args.home = (-1,-1) # TODO implement properly
+        args.home = Waypoint.zero() # TODO implement properly
 
     #   ======================
     #   | DATA STORAGE SETUP |
@@ -302,14 +301,11 @@ def do_wp_gen(args):
 
         # Gen WPS
         waypoints = WaypointFactory(
-            alg, prob_map, animate=args.animate, threaded=args.threaded,home=Waypoint(args.home)).generate()
+            alg, prob_map, animate=args.animate, threaded=args.threaded,home_wp=args.home).generate()
 
         if args.dimmensions is not None:
             waypoints = waypoints.interped((prob_map.shape[1],prob_map.shape[0]),args.dimmensions)  
-#        else:
-#            waypoints = waypoints.interped((prob_map.shape[1],prob_map.shape[0]),prob_map_original.shape)
 
-        # Store
         wp_gen_output.add_generated_wps(waypoints,time.time()-t,alg)
     
         # Animate
@@ -374,6 +370,9 @@ def do_sar(args):
         plt.ylabel("Y")
         plt.show()
 
+def threaded_sim(placed_objs,r,v, out_dic,alg,wps):
+    out_dic[alg] = sim.Simulation(wps, placed_objs, r, v, False,alg=alg).run()
+
 def do_sim(args):
 
     wp_gen_output = WpGenOutput([]).add_generated_wps(Waypoints(args.WPS),-1,WaypointAlgorithmEnum.UNKNOWN) if not isinstance(args.WPS[0],WpGenOutput) else args.WPS[0]
@@ -389,13 +388,34 @@ def do_sim(args):
     total_items = len(wp_gen_output.data)
     c = 0
 
-    for wp_alg,data in wp_gen_output.data.items():
-        logger.info(f"Simulating {wp_alg}")
-        logger.trace(f"Iteration {(c:=c+1)} out of {total_items} ({100*c/total_items:.2f}%)")
+    if args.threaded:
+        logger.info(f"Simulating all algs with threading ({total_items} simulations to run)")
+        managers = multiprocessing.Manager()
+        out_dict = managers.dict()
+        # pool = multiprocessing.Pool(2)
+        # wps_iter = [(f,g['wps']) for f,g in wp_gen_output.data.items()]
+        # partial = functools.partial(threaded_sim,placed_objs,args.search_radius, args.flight_speed,out_dict)
+        # result = pool.map(func=partial, iterable=wps_iter)
+        # pool.close()
+        # pool.join()
 
-        wps = data['wps']
-        vehicle_sim_data = sim.Simulation(wps,placed_objs,args.search_radius,args.flight_speed,args.animate).run()
-        sim_runner_output.add_simulation_data(vehicle_sim_data,WaypointAlgorithmEnum[wp_alg.split('.')[1]])
+        jobs = []
+        for wp_alg,data in wp_gen_output.data.items():
+            wps = data['wps']
+            p = multiprocessing.Process(target=threaded_sim, args=(placed_objs,args.search_radius, args.flight_speed,out_dict,wp_alg,wps))
+            jobs.append(p)
+            p.start()
+        for proc in jobs:
+            proc.join()
+        for key in out_dict:
+            sim_runner_output.add_simulation_data(out_dict[key],WaypointAlgorithmEnum[key.split('.')[1]])
+    else:
+        for wp_alg,data in wp_gen_output.data.items():
+            wps = data['wps']
+            logger.info(f"Simulating {wp_alg}")
+            logger.trace(f"Iteration {(c:=c+1)} out of {total_items} ({100*c/total_items:.2f}%)")
+            vehicle_sim_data = sim.Simulation(wps,placed_objs,args.search_radius,args.flight_speed,args.animate).run()
+            sim_runner_output.add_simulation_data(vehicle_sim_data,WaypointAlgorithmEnum[wp_alg.split('.')[1]])
 
     with open(args.out_file,'w') as f:
         json.dump(sim_runner_output,f,cls=GlobalJsonEncoder)
@@ -461,7 +481,7 @@ def get_parser() -> argparse.ArgumentParser:
                                 required=False,
                                 type=lambda x: is_valid_file(parser, x),
                                 default=os.path.join(
-                                    "img", "probability_imgs", "prob_map_4_location_based.png"),
+                                    os.getenv('OPP4SAR_DIR'), "img", "probability_imgs", "prob_map_4_location_based.png"),
                                 help="probability map image file path"
                                 )
 
@@ -499,9 +519,7 @@ if __name__ == "__main__":
     if os.getenv('TERM_PROGRAM') != 'vscode':
         args = parser.parse_args()
     else:
-        # '-I img/probability_imgs/prob_map_4_location_based.png -vvv sar -n 200 -V'.split())
-        #"-vvv -I img/probability_imgs/prob_map_8_jackton.png --dim 422 439 -S 15 sim output_wp.json -o 5,5 10,10 -O /tmp/output_sar.json --flight_speed 1 -A".split())
-        args = parser.parse_args("-vvv -I img/probability_imgs/prob_map_8_jackton.png -D 422.3175926525146 438.6246933788061 -S 15 wp -LMS --solver fmincon ga particleswarm -T --home 211.1587963262573 219.31234668940306".split())
+        args = parser.parse_args("-vvv --dim 300 300 -S 15 sim generated_data/output_wp_baf37f5e.json -o generated_data/output_sar_baf37f5e.json -O generated_data/output_sim_baf37f5e.json".split())
 
 #   ==============================
 #   | CHECK ARGS (error on fail) |
