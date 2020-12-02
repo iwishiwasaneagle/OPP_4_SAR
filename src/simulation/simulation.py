@@ -1,5 +1,5 @@
-from math import cos, sin
-
+import os
+import diskcache as dc
 from numpy.core.fromnumeric import mean
 from numpy.core.shape_base import block
 from src.waypoint_generation.waypoint_settings import SarGenOutput, WaypointAlgSettings
@@ -26,14 +26,14 @@ class SimRunnerOutput:
 
 
 class Simulation:
-    def __init__(self, waypoints: Waypoints, searched_object_locations: Waypoints, search_radius: float, mean_flight_speed: float, animate: bool = False):
+    def __init__(self, waypoints: Waypoints, searched_object_locations: Waypoints, search_radius: float, mean_flight_speed: float, animate: bool = False,alg:WaypointAlgorithmEnum=WaypointAlgorithmEnum.UNKNOWN):
 
         self.waypoints = waypoints
 
         self.vehicle = Vehicle(pos=Pose.fromWP(self.waypoints[0]))
         self.trajectories = Trajectories()
         self.animate = animate
-        
+        self.alg = alg
         if self.animate:
             plt.ion()
             fig = plt.figure()
@@ -54,7 +54,7 @@ class Simulation:
 
 
         logger.info(
-            f"Running simulation with {len(waypoints)} waypoints and {len(searched_object_locations)} searched objects with search radius = {self.search_radius}")
+            f"{alg} - Running simulation with {len(waypoints)} waypoints and {len(searched_object_locations)} searched objects with search radius = {self.search_radius}",enqueue=True)
 
     def run(self) -> VehicleSimData:
         bounds = []
@@ -90,25 +90,36 @@ class Simulation:
             self.trajectories.add(trajectory)
 
         t = 0
+        max_x,max_y = np.max(self.searched_object_locations,axis=0)
+        min_x,min_y = np.min(self.searched_object_locations,axis=0)
+        x,y = np.meshgrid(np.arange(min_x,max_x+1),np.arange(min_y,max_y+1))
+        x,y=x.flatten(),y.flatten()
+        objs_possible_xy = np.vstack((x,y)).T
+
+        cache = dc.Cache(os.path.join('/','tmp','opp4sar',str(np.random.rand())[2:]))
+                
         for i,trajectory in enumerate(self.trajectories):
-            logger.trace(f"Trajectory {i} out of {len(self.trajectories)}. T={trajectory.T:.2f}s")
             t_local = 0
+
+            logger.trace(
+                f"{self.alg} - Trajectory {i}/{len(self.trajectories)} with T={trajectory.T:.2f}s", enqueue=True)
             while t_local <= trajectory.T:
                 # Search for object
                 if self.searched_object_locations is not None:
 
                     # create distance vectors
-                    v = np.array([self.vehicle.pos.x-self.searched_object_locations[:, 0],
-                                  self.vehicle.pos.y-self.searched_object_locations[:, 1]])
+                    v = np.array([self.vehicle.pos.x-objs_possible_xy[:,0],
+                                  self.vehicle.pos.y-objs_possible_xy[:, 1]])
+
                     # if distance is < search radius -> object found
                     dist = np.linalg.norm(v, axis=0)
+
                     if any(dist < self.search_radius):
                         inds = np.where(dist < self.search_radius)[0]
                         for ind in inds:
-                            loc = self.searched_object_locations[ind]
-                            self.vehicle.data.found.append((t, loc))
-                        self.searched_object_locations = np.delete(
-                            self.searched_object_locations, inds, axis=0)
+                            loc = objs_possible_xy[ind]
+                            cache[f'{loc[0]},{loc[1]}'] = t                            
+                            objs_possible_xy = np.delete(objs_possible_xy, inds, axis=0)
 
                 # Calc desired position, velocity and acceleration from generated polynomial trajectory
                 des_pos = trajectory.position(t_local)
@@ -122,11 +133,20 @@ class Simulation:
                 t_local += dt
                 t += dt
         
-                if t_local==dt and self.animate:
+                if t_local==5 and self.animate:
                     self._plot()
+                    
+        for key in cache.iterkeys():
+            t = cache[key]
+            xy=tuple(np.array(key.split(',')).astype(float).astype(int))
+            inds = np.where((self.searched_object_locations[:,0]==xy[0])&(self.searched_object_locations[:,1]==xy[1]))[0]
+            for ind in inds:
+                self.vehicle.data.found.append(
+                    self.searched_object_locations[ind]
+                )
 
         logger.info(
-            f"Found {100*len(self.vehicle.data.found)/self.num_objs:.2f}% ({len(self.vehicle.data.found)}/{self.num_objs}) objects")
+            f"{self.alg} - Found {100*len(self.vehicle.data.found)/self.num_objs:.2f}% ({len(self.vehicle.data.found)}/{self.num_objs}) objects", enqueue=True)
 
         if self.animate:
             self._plot()

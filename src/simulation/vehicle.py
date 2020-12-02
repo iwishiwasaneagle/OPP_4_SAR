@@ -1,4 +1,5 @@
-import json
+import os
+import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from src.simulation.parameters import *
@@ -11,6 +12,7 @@ class Vehicle:
         self.dpos = dpos
         self.ddpos = ddpos
         self.t = 0
+        self.c = -1
 
         self.data = VehicleSimData()
 
@@ -43,27 +45,29 @@ class Vehicle:
         self.pos.x += self.dpos.x * dt
         self.pos.y += self.dpos.y * dt
         
-        self._store()
+        if self.c%int(0.5/dt) == 0:
+            self._store()
+        self.c+=1
 
         self.t += dt
 
     def _store(self) -> None:
         self.data.update(self.t, self.pos, self.dpos, self.ddpos)
 
-
 class VehicleSimData:
     def __init__(self) -> None:
         self.t = []
         self.found = []
-        self.pos = Poses()
-        self.dpos = Poses()
-        self.ddpos = Poses()
+        self.pos = []
+        self.dpos = []
+        self.ddpos = []
 
     def update(self, t, pos, dpos, ddpos):
-        self.t.append(np.copy(t))
-        self.pos.add(np.copy(pos))
-        self.dpos.add(np.copy(dpos))
-        self.ddpos.add(np.copy(ddpos))
+        self.t.append(t)
+        self.pos.append([pos.x,pos.y])
+        self.dpos.append([dpos.x,dpos.y])
+        self.ddpos.append([ddpos.x,ddpos.y])
+
 
     def __str__(self) -> str:
         return f"VehicleSimData({self.__dict__})"
