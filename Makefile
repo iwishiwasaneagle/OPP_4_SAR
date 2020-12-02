@@ -7,12 +7,9 @@ uml:
 	mv classes*.png ${UMLDIR}
 	mv packages*.png ${UMLDIR}
 
-run:
-	source ${VENV}; \
-	python3 main.py; \
-
 install:
-	pip3 install -r requirements.txt; \
+	pip3 install --user -r requirements.txt; \
+	sudo install main.py /usr/bin/opp4sar
 
 badges:
 	bash helpers/lines.sh
