@@ -16,8 +16,8 @@ class CostFunc:
     def __init__(self):
         self.mat_eng = MatlabHelper.instance()
         self.mat_eng.eng.addpath(os.path.join(
-            *[os.getcwd()] + self.__module__.split('.')[:-1]))
-        self.settings = WaypointAlgSettings.Global()
+            *[os.getenv('OPP4SAR_DIR')] + self.__module__.split('.')[:-1]))
+        #self.settings = WaypointAlgSettings.Global()
 
     def calculate(self, path: Waypoints, prob_map: ProbabilityMap, search_radius: float = 0.5) -> float:
         assert(isinstance(path, Waypoints))

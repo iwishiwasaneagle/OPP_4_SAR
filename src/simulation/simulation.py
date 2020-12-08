@@ -1,7 +1,5 @@
 import os
 import diskcache as dc
-from numpy.core.fromnumeric import mean
-from numpy.core.shape_base import block
 from src.waypoint_generation.waypoint_settings import SarGenOutput, WaypointAlgSettings
 from src.enums.waypoint_algorithm_enum import WaypointAlgorithmEnum
 from loguru import logger
@@ -13,7 +11,7 @@ from src.data_models.positional.waypoint import Waypoint, Waypoints
 from src.data_models.positional.pose import Pose
 from typing import List, Tuple
 import matplotlib.pyplot as plt
-
+import tempfile
 
 class SimRunnerOutput:
     def __init__(self) -> None:
@@ -96,7 +94,7 @@ class Simulation:
         x,y=x.flatten(),y.flatten()
         objs_possible_xy = np.vstack((x,y)).T
 
-        cache = dc.Cache(os.path.join('/','tmp','opp4sar',str(np.random.rand())[2:]))
+        cache = dc.Cache(os.path.join(tempfile.gettempdir(),'opp4sar',str(np.random.rand())[2:]))
                 
         for i,trajectory in enumerate(self.trajectories):
             t_local = 0
@@ -119,7 +117,7 @@ class Simulation:
                         for ind in inds:
                             loc = objs_possible_xy[ind]
                             cache[f'{loc[0]},{loc[1]}'] = t                            
-                            objs_possible_xy = np.delete(objs_possible_xy, inds, axis=0)
+                        objs_possible_xy = np.delete(objs_possible_xy, inds, axis=0)
 
                 # Calc desired position, velocity and acceleration from generated polynomial trajectory
                 des_pos = trajectory.position(t_local)
@@ -132,8 +130,8 @@ class Simulation:
                 # Update time
                 t_local += dt
                 t += dt
-        
-                if t_local==5 and self.animate:
+
+                if t_local==dt and self.animate:
                     self._plot()
                     
         for key in cache.iterkeys():
@@ -142,7 +140,7 @@ class Simulation:
             inds = np.where((self.searched_object_locations[:,0]==xy[0])&(self.searched_object_locations[:,1]==xy[1]))[0]
             for ind in inds:
                 self.vehicle.data.found.append(
-                    self.searched_object_locations[ind]
+                    (t,self.searched_object_locations[ind])
                 )
 
         logger.info(

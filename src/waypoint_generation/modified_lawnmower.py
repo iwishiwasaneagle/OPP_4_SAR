@@ -69,7 +69,7 @@ class ModifiedLawnmower(BaseWPGenerator):
         string = f"{100*float(c)/N_perms:.2f}% after {time.time()-t0:.1f}s and {c} iterations | p_opt={p_opt} with cost={cost_opt}"
         logger.info(string)
 
-        wps = Waypoints([Waypoint(0,0)])
+        wps = Waypoints([self.home_wp])
 
         lower_y,upper_y = (1,self.prob_map.shape[1]-1)
 
@@ -91,6 +91,8 @@ class ModifiedLawnmower(BaseWPGenerator):
                    Waypoint(p,lower_y),
                 )
             at_bottom = not at_bottom
+        
+        wps.add(self.home_wp)
         
         return wps
 

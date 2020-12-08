@@ -12,7 +12,7 @@ class ParallelSwaths(BaseWPGenerator):
 
     @property
     def waypoints(self) -> Waypoints:
-        wps = Waypoints([self.settings.home_wp])
+        wps = Waypoints([self.home_wp])
         lower_y,upper_y = (1,self.prob_map.shape[0]-1)
 
         rows = np.arange(1,self.prob_map.shape[1])
@@ -33,5 +33,5 @@ class ParallelSwaths(BaseWPGenerator):
                    Waypoint(r,lower_y),
                 )
             at_bottom = not at_bottom
-        wps.add(self.settings.home_wp)
+        wps.add(self.home_wp)
         return wps

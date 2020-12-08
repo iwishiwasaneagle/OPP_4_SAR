@@ -9,10 +9,8 @@ function cost = cost_func(x_inp,home_wp,prob_map, radius, unit_endurance, unit_e
     r = radius;
     r_extra_search = 1;
 
-    if ~all(home_wp<0)
-        x_inp = [home_wp; x_inp; home_wp];
-    end
-    
+    x_inp = [home_wp; x_inp; home_wp];
+        
     poly = polybuffer(x_inp,'Lines',r);
     poly_fat = polybuffer(x_inp,'Lines', r+r_extra_search);
 

@@ -52,7 +52,7 @@ class WPSettingsEncoder(json.JSONEncoder):
 class WaypointAlgSettings:
     class _BaseSetting:
         def __init__(self,rel_f_path):
-            with open(os.path.join(*[os.getcwd()]+["src","waypoint_generation"]+rel_f_path),'r') as f:
+            with open(os.path.join(*[os.getenv('OPP4SAR_DIR')]+["src","waypoint_generation"]+rel_f_path),'r') as f:
                 data = json.load(f,cls=WPSettingsDecoder)
             self.__dict__.update(data)       
     class Global(_BaseSetting):

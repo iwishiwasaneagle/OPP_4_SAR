@@ -19,7 +19,7 @@ class ProbabilityMap:
         img = Image.open(img_path)
         arr = np.array(img)
         if len(arr.shape)==3:
-            mask = np.ones((arr.shape[0],arr.shape[1],4))
+            mask = np.ones(arr.shape)
             mask[:,:,1:] = 0        
             return cls((mask*arr)[:,:,0])
         else:

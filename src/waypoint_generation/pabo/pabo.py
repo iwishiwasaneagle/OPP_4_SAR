@@ -19,7 +19,7 @@ from loguru import logger
 
 
 class PABO(BaseWPGenerator):
-    def __init__(self,home:Waypoint,**kwargs):
+    def __init__(self,**kwargs):
         if 'solver' in kwargs and isinstance(kwargs['solver'], PABOSolverEnum):
             self.solver = kwargs.pop('solver')
 
@@ -28,9 +28,7 @@ class PABO(BaseWPGenerator):
         self.mat_eng = MatlabHelper.instance()
         path = os.path.join(os.getcwd(),'src', 'waypoint_generation')
         self.mat_eng.eng.addpath(os.path.join(path,'pabo'),**self.mat_eng.kwargs)
-
-        self.home = home
-        
+       
         self.settings = WaypointAlgSettings.PABO()
         self.wp_count = self.settings.wp_count
         if 'solver' not in self.__dict__:
@@ -41,12 +39,12 @@ class PABO(BaseWPGenerator):
     @property
     def sweep_radius(self) -> float:
         return self.settings.search_radius
-    
+     
     @property
     def waypoints(self) -> Waypoints:
         mdouble_wp_count = mdouble([self.wp_count-2])
         mdouble_prob_map = mdouble(self.prob_map.prob_map.tolist())
-        mdouble_home_wp = mdouble([self.home.x,self.home.y])
+        mdouble_home_wp = mdouble([self.home_wp.x,self.home_wp.y])
         solver_str = str(self.solver).split(".")[1].lower()
 
         # self.mat_eng.eng.eval("dbstop in pabo.m at 48",nargout=0)
@@ -66,4 +64,4 @@ class PABO(BaseWPGenerator):
             **self.mat_eng.kwargs)
         logger.trace("Post-matlab")
      
-        return Waypoints([self.home]+[list(f) for f in x]+[self.home])
+        return Waypoints([self.home_wp]+[list(f) for f in x]+[self.home_wp])

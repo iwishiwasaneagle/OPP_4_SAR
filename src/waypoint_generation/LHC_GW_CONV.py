@@ -40,14 +40,12 @@ class ConvolutionResult:
         else :         raise IndexError(f"{key} > 2")
 
 class LHC_GW_CONV(BaseWPGenerator):
-    def __init__(self,home_wp:Waypoint=Waypoint.zero(), **kwargs):
+    def __init__(self,**kwargs):
         super().__init__(**kwargs)
 
         self.settings = WaypointAlgSettings.LHC_GW_CONV()
 
         self.search_threshold = 0
-
-        self.home_wp = home_wp
 
         self.animate = self.animate and not self.threaded
     @property
@@ -105,11 +103,11 @@ class LHC_GW_CONV(BaseWPGenerator):
 
     def LHC_CONV(self,l=0, ret_dict: dict={}) -> Waypoints:
         logger.debug(f"({l}) Starting LHC_CONV with l={l}")
-        wps = [self.home_wp]
+        wps = []
         accumulator = 0
         visited = Waypoints([])
 
-        cur = wps[0]
+        cur = self.home_wp
         t = time.time()
 
         C = self.prob_map.max/float(l)
@@ -167,9 +165,8 @@ class LHC_GW_CONV(BaseWPGenerator):
            
         logger.debug(f"({l}) Completed in {time.time()-t:.3f}s with local score {accumulator:.4f} and {conflicts} conflicts", enqueue=True)
         
-        wps.append(self.home_wp)
 
-        wps = Waypoints([Waypoint(f.x+0.5, f.y+0.5) for f in wps]) # Bring the coord into the center of the square
+        wps = Waypoints([self.home_wp]+[Waypoint(f.x+0.5, f.y+0.5) for f in wps]+[self.home_wp]) # Bring the coord into the center of the square
 
         if self.threaded:
             ret_dict[l] = wps

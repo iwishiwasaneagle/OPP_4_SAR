@@ -245,6 +245,7 @@ def do_wp_gen(args):
     prob_map_original = prob_map
     logger.trace(f"ProbabilityMap({args.filename})")
 
+    wp_gen_output = None
     if args.dimmensions is not None:
         width_m,height_m = args.dimmensions
         b = args.search_radius*2
@@ -255,16 +256,14 @@ def do_wp_gen(args):
         # We want 1 pixel to match the physical dimmensions of the search radius
         prob_map = prob_map.resampled(int(width_m/b),int(height_m/b))
         prob_map_original = prob_map_original.resampled(int(width_m),int(height_m))
+        
+        wp_gen_output = WpGenOutput(prob_map_original)
 
     elif args.shape is not None:
         prob_map = prob_map.resampled(*args.shape)
         args.home = Waypoint.zero() # TODO implement properly
 
-    #   ======================
-    #   | DATA STORAGE SETUP |
-    #   ======================
-
-    wp_gen_output = WpGenOutput(prob_map)
+        wp_gen_output = WpGenOutput(prob_map)
 
     #   ==============
     #   | ALGS SETUP |

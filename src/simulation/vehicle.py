@@ -1,7 +1,5 @@
-import os
-import csv
 import numpy as np
-import matplotlib.pyplot as plt
+import copy
 from src.simulation.parameters import *
 from src.data_models.positional.pose import Pose, Poses
 from src.data_models.positional.angle import Yaw
@@ -58,15 +56,15 @@ class VehicleSimData:
     def __init__(self) -> None:
         self.t = []
         self.found = []
-        self.pos = []
-        self.dpos = []
-        self.ddpos = []
+        self.pos = Poses() 
+        self.dpos = Poses()
+        self.ddpos = Poses()
 
     def update(self, t, pos, dpos, ddpos):
         self.t.append(t)
-        self.pos.append([pos.x,pos.y])
-        self.dpos.append([dpos.x,dpos.y])
-        self.ddpos.append([ddpos.x,ddpos.y])
+        self.pos.add(copy.deepcopy(pos))
+        self.dpos.add(copy.deepcopy(dpos))
+        self.ddpos.add(copy.deepcopy(ddpos))
 
 
     def __str__(self) -> str:
