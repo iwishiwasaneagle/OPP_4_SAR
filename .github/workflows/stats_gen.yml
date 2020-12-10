@@ -27,19 +27,27 @@ jobs:
           python-version: '3.8.5'
 
       - name: Install dependencies
-        run: python -m pip install --upgrade pip matplotlib        
+        run: |
+          python -m pip install --upgrade pip matplotlib   
+          python -m pip install setuptools pylint anybadge
+          sudo apt install graphviz cloc
 
       - name: Gen graph
         run: python3 ./helpers/visualize.py save
+
+      - name: Build UML
+        run: make uml
+      
+      - name: Build badges
+        run: make badges
           
       - name: Commit documentation changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add ./helpers/stats.png
-          git commit -am "Updated stats.png" || true
-          # The above command will fail if no changes were present, so we ignore
-          # the return code.
+          git add img/UML/* img/lines.svg
+          git commit -am "Auto: Updated images" || true
           
       - name: Push changes
         uses: ad-m/github-push-action@master
