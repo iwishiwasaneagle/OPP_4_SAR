@@ -365,8 +365,8 @@ def do_sar(args):
                     cmap='gray'
                     )
         plt.plot(points[:, 0]+0.5, points[:, 1]+0.5, 'rx')
-        plt.xlabel("X")
-        plt.ylabel("Y")
+        plt.xlabel("X (m)")
+        plt.ylabel("Y (m)")
         plt.show()
 
 def threaded_sim(placed_objs,r,v, out_dic,alg,wps):
