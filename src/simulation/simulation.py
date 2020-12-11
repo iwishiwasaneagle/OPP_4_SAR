@@ -12,6 +12,7 @@ from src.data_models.positional.pose import Pose
 from typing import List, Tuple
 import matplotlib.pyplot as plt
 import tempfile
+import time
 
 class SimRunnerOutput:
     def __init__(self) -> None:
@@ -94,7 +95,10 @@ class Simulation:
         x,y=x.flatten(),y.flatten()
         objs_possible_xy = np.vstack((x,y)).T
 
-        cache = dc.Cache(os.path.join(tempfile.gettempdir(),'opp4sar',str(np.random.rand())[2:]))
+        np.random.seed(int(time.time()*len(self.alg)*len(self.waypoints)))
+        cache_path = os.path.join(tempfile.gettempdir(),'opp4sar',str(np.random.rand())[2:])
+        cache = dc.Cache(cache_path)
+        logger.trace(f"{self.alg} - Cache path = {cache_path}",enqueue=True)
                 
         for i,trajectory in enumerate(self.trajectories):
             t_local = 0
