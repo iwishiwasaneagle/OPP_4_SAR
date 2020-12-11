@@ -4,7 +4,7 @@
 
 # Jan-Hendrik Ewers MEng repo
 
-![CI](https://github.com/iwishiwasaneagle/JHE_MEng/workflows/CI/badge.svg)
+![Tests](https://github.com/iwishiwasaneagle/OPP_4_SAR/workflows/Tests/badge.svg)
 ![Lines of Code](img/lines.svg)
 
 ## Explanation
