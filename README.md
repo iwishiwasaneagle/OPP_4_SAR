@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./img/GlaLogo.png" alt="UofG Logo" width="360">
+  <img src="./img/logo.png" alt="logo" width="360">
 </p>
 
 # Jan-Hendrik Ewers MEng repo
