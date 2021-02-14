@@ -2,11 +2,19 @@
   <img src="./img/logo.png" alt="logo" width="360">
 </p>
 
-# Jan-Hendrik Ewers MEng repo
+# Optimum Path Planning for Search and Rescue
 
 ![Tests](https://github.com/iwishiwasaneagle/OPP_4_SAR/workflows/Tests/badge.svg)
 
 View the full thesis [here](https://iwishiwasaneagle.github.io/OPP_4_SAR_thesis/)!
+
+Search and Rescue (SAR) of vulnerable missing persons is unfortunately a common task for the Police and other emergency services. Organisations like the Centre for Search and Rescue (CSR)[1] carry out research into the typical behaviour patterns for classes of missing person (young child, elderly person with dementia etc.) and provide specialist training to Police forces in all areas related to SAR. The category of missing person is mapped to a behavioural or psychological profile that is used to refine the search, indicating buildings or landmarks that the person is most likely to be. One of the key outcomes from all studies into the effectiveness of missing person search strategies is that time is crucial - the quicker the person is found, the more likely a favourable outcome.
+
+With the rapid development and expansion of the drone sector over the last decade, Unmanned Aerial Vehicles (UAVs) have become cheaper and more accessible than ever before. Officers from the Air Support Unit of Police Scotland are one of the first emergency services in the UK to take advantage of this technology by using infrared and visible light cameras on commercially available quadrotors as an aid to the current single manned helicopter. Current plans are to use single UAV platforms to search a pre-defined area, to detect possible targets and direct the search team, although swarms of vehicles are also being considered for future use. However, their flight plans are made solely by instinct and training and this provides a unique opportunity to use a priori information to create optimised coverage paths.
+
+However, if little thought is given to the path planning algorithm it may well be suboptimal intime sensitive scenarios. Therefore, it is imperative to find the optimum path for the scenario tomobilise ground units as fast as possible. Research has been conducted in this field, with themost promising using the Bayesian search theory which is based on the Bayesian statisticswhere probability expresses adegree of beliefin an event. This search theory has been usedfor SAR efforts previously, such as in the MH370 incident of 2011[2]. For the use in drones, thistheory can be used to construct coverage paths using various greedy path planning algorithmsand numerical optimisation methods.
+
+This repository implements algorithms from [3], [4] and [5] as well as implementing a custom area coverage algorithm based on probability accumulation based optimisation. 
 
 ## Install
 
@@ -187,3 +195,15 @@ time python3 $CODE_DIR/main.py -vvv -I $PROB_MAP --dim $X_SHAPE $Y_SHAPE -S $RAD
 time python3 $CODE_DIR/main.py -vvv -I $PROB_MAP --dim $X_SHAPE $Y_SHAPE -S $RAD sar -n $N_SAR -O $sar_out_file
 time python3 $CODE_DIR/main.py -vvv -I $PROB_MAP --dim $X_SHAPE $Y_SHAPE -S $RAD sim $wp_out_file -o $sar_out_file -O $sim_out_file -T
 ```
+
+### References
+[1] D. Perkins, P. Roberts, and G. Feeney, “The U.K. Missing Person Behaviour Study,” 2011. [Online]. Available: http://www.searchresearch.org.uk/downloads/ukmpbs/13556434714e40eee77e749.pdf.
+
+[2] Angus Whitley, “How an Eighteenth-Century Statistician Is Helping to Find MH370,” Bloomberg, 2015.
+
+[3] J. Ousingsawat and M. G. Earl, “Modified lawn-mower search pattern for areas comprised of weighted regions,” Proc. Am. Control Conf., pp. 918–923, 2007, doi: 10.1109/ACC.2007.4282850.
+
+[4] J. Ousingsawat and M. G. Earl, “Modified lawn-mower search pattern for areas comprised of weighted regions,” Proc. Am. Control Conf., pp. 918–923, 2007, doi: 10.1109/ACC.2007.4282850.
+
+[5] E. M. Arkin, S. P. Fekete, and J. S. B. Mitchell, “Approximation algorithms for lawn mowing and milling,” Comput. Geom. Theory Appl., vol. 17, no. 1–2, pp. 25–50, 2000, doi: 10.1016/S0925-7721(00)00015-8.
+
