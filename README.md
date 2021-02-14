@@ -203,7 +203,7 @@ time python3 $CODE_DIR/main.py -vvv -I $PROB_MAP --dim $X_SHAPE $Y_SHAPE -S $RAD
 
 [3] J. Ousingsawat and M. G. Earl, “Modified lawn-mower search pattern for areas comprised of weighted regions,” Proc. Am. Control Conf., pp. 918–923, 2007, doi: 10.1109/ACC.2007.4282850.
 
-[4] J. Ousingsawat and M. G. Earl, “Modified lawn-mower search pattern for areas comprised of weighted regions,” Proc. Am. Control Conf., pp. 918–923, 2007, doi: 10.1109/ACC.2007.4282850.
+[4] L. Lin and M. A. Goodrich, “UAV intelligent path planning for wilderness search and rescue,” 2009 IEEE/RSJ Int. Conf. Intell. Robot. Syst. IROS 2009, vol. 0, no. 1, pp. 709–714, 2009, doi: 10.1109/IROS.2009.5354455.
 
 [5] E. M. Arkin, S. P. Fekete, and J. S. B. Mitchell, “Approximation algorithms for lawn mowing and milling,” Comput. Geom. Theory Appl., vol. 17, no. 1–2, pp. 25–50, 2000, doi: 10.1016/S0925-7721(00)00015-8.
 
