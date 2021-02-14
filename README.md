@@ -12,9 +12,15 @@
 make install
 ```
 
-## Progress
+## Documentation
 
-![Code stats](helpers/stats.png)
+Either
+
+ - Build by running `doxygen` from within the repo dir
+
+Or
+ 
+ - Launch the `index.html` from within the `docs` folder (`firefox docs/index.html`)
 
 ## Usage 
 
