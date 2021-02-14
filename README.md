@@ -6,7 +6,7 @@
 
 ![Tests](https://github.com/iwishiwasaneagle/OPP_4_SAR/workflows/Tests/badge.svg)
 
-View the full thesis [here](https://iwishiwasaneagle.github.io/OPP_4_SAR_thesis/)!
+*View the full thesis [here](https://iwishiwasaneagle.github.io/OPP_4_SAR_thesis/)!*
 
 Search and Rescue (SAR) of vulnerable missing persons is unfortunately a common task for the Police and other emergency services. Organisations like the Centre for Search and Rescue (CSR)[1] carry out research into the typical behaviour patterns for classes of missing person (young child, elderly person with dementia etc.) and provide specialist training to Police forces in all areas related to SAR. The category of missing person is mapped to a behavioural or psychological profile that is used to refine the search, indicating buildings or landmarks that the person is most likely to be. One of the key outcomes from all studies into the effectiveness of missing person search strategies is that time is crucial - the quicker the person is found, the more likely a favourable outcome.
 
@@ -16,7 +16,7 @@ However, if little thought is given to the path planning algorithm it may well b
 
 This repository implements algorithms from [3], [4] and [5] as well as implementing a custom area coverage algorithm based on probability accumulation based optimisation. 
 
-## Install
+## Installation
 
 ```
 make install
