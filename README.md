@@ -6,7 +6,7 @@
 
 ![Tests](https://github.com/iwishiwasaneagle/OPP_4_SAR/workflows/Tests/badge.svg)
 
-View the full dissertation [here](https://iwishiwasaneagle.github.io/OPP_4_SAR_thesis/)!
+View the full thesis [here](https://iwishiwasaneagle.github.io/OPP_4_SAR_thesis/)!
 
 ## Install
 
