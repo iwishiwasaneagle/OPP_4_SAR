@@ -5,11 +5,6 @@
 # Jan-Hendrik Ewers MEng repo
 
 ![Tests](https://github.com/iwishiwasaneagle/OPP_4_SAR/workflows/Tests/badge.svg)
-![Lines of Code](img/lines.svg)
-
-## Explanation
-
-![Classes UML](img/UML/classes_jhe_meng_project.png)
 
 ## Install
 
