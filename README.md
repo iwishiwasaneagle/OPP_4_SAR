@@ -4,7 +4,9 @@
 
 # Optimum Path Planning for Search and Rescue
 
-![Tests](https://github.com/iwishiwasaneagle/OPP_4_SAR/workflows/Tests/badge.svg)
+![Tests](https://github.com/iwishiwasaneagle/OPP_4_SAR/workflows/Tests/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5566942.svg)](https://doi.org/10.5281/zenodo.5566942)
+
+
 
 *View the full thesis [here](https://iwishiwasaneagle.github.io/OPP_4_SAR_thesis/)!*
 
